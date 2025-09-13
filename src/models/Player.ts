@@ -1,0 +1,105 @@
+import mongoose, { Document, Schema } from 'mongoose'
+
+export interface IPlayer extends Document {
+  name: string
+  shirtNumber: number
+  position: string
+  age: number
+  nationality: string
+  bio?: string
+  devRole: string
+  goals: number
+  assists: number
+  matchesPlayed: number
+  avatar?: string
+  joinedDate: Date
+  isActive: boolean
+}
+
+const PlayerSchema: Schema = new Schema({
+  name: { 
+    type: String, 
+    required: true,
+    trim: true
+  },
+  shirtNumber: { 
+    type: Number, 
+    required: true,
+    unique: true,
+    min: 1,
+    max: 99
+  },
+  position: { 
+    type: String, 
+    required: true,
+    enum: ['Goalkeeper', 'Defender', 'Midfielder', 'Forward']
+  },
+  age: { 
+    type: Number, 
+    required: true,
+    min: 16,
+    max: 50
+  },
+  nationality: { 
+    type: String, 
+    required: true,
+    trim: true
+  },
+  bio: { 
+    type: String,
+    trim: true
+  },
+  devRole: { 
+    type: String, 
+    required: true,
+    enum: [
+      'Frontend Engineer',
+      'Backend Engineer', 
+      'Full-stack Developer',
+      'DevOps Engineer',
+      'UI/UX Designer',
+      'Mobile Developer',
+      'Data Engineer',
+      'QA Engineer',
+      'Project Manager',
+      'Tech Lead',
+      'Software Architect'
+    ]
+  },
+  goals: { 
+    type: Number, 
+    default: 0,
+    min: 0
+  },
+  assists: { 
+    type: Number, 
+    default: 0,
+    min: 0
+  },
+  matchesPlayed: { 
+    type: Number, 
+    default: 0,
+    min: 0
+  },
+  avatar: { 
+    type: String,
+    trim: true
+  },
+  joinedDate: { 
+    type: Date, 
+    default: Date.now 
+  },
+  isActive: { 
+    type: Boolean, 
+    default: true 
+  }
+}, {
+  timestamps: true
+})
+
+PlayerSchema.index({ shirtNumber: 1 })
+PlayerSchema.index({ position: 1 })
+PlayerSchema.index({ devRole: 1 })
+PlayerSchema.index({ isActive: 1 })
+
+export default mongoose.models.Player || mongoose.model<IPlayer>('Player', PlayerSchema)
