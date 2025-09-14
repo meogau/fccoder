@@ -87,7 +87,7 @@ async function authenticatedPUT(request: NextRequest, { params }: { params: { id
         
         // Create maps for easy lookup
         const oldStatsMap = new Map()
-        existingMatch.playerStats.forEach(stat => {
+        existingMatch.playerStats.forEach((stat: any) => {
           if (stat.playerId) {
             const playerId = (stat.playerId._id || stat.playerId).toString()
             oldStatsMap.set(playerId, {
@@ -98,7 +98,7 @@ async function authenticatedPUT(request: NextRequest, { params }: { params: { id
         })
         
         const newStatsMap = new Map()
-        body.playerStats.forEach(stat => {
+        body.playerStats.forEach((stat: any) => {
           if (stat.playerId) {
             newStatsMap.set(stat.playerId.toString(), {
               goals: stat.goals || 0,
