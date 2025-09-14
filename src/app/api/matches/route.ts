@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Match from '@/models/Match'
+import Player from '@/models/Player' // Import Player model to register schema
 
 export async function GET(request: NextRequest) {
   try {
