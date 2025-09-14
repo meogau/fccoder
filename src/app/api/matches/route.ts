@@ -30,6 +30,11 @@ export async function GET(request: NextRequest) {
     console.log('Sort object:', sortObj)
     
     const matches = await Match.find(query)
+      .populate({
+        path: 'playerStats.playerId',
+        model: Player,
+        select: 'name shirtNumber position'
+      })
       .sort(sortObj)
       .limit(limit)
       .skip(skip)
@@ -66,7 +71,11 @@ export async function POST(request: NextRequest) {
     const match = new Match(body)
     await match.save()
     
-    // Populate removed for now to avoid schema issues
+    await match.populate({
+      path: 'playerStats.playerId',
+      model: Player,
+      select: 'name shirtNumber position'
+    })
     
     return NextResponse.json(
       { success: true, data: match },

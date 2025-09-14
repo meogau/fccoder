@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Match from '@/models/Match'
+import Player from '@/models/Player' // Import to register schema
 import mongoose from 'mongoose'
 
 export async function GET(
@@ -26,6 +27,11 @@ export async function GET(
     
     console.log('Looking for match with ID:', params.id)
     const match = await Match.findById(params.id)
+      .populate({
+        path: 'playerStats.playerId',
+        model: Player,
+        select: 'name shirtNumber position devRole avatar'
+      })
     console.log('Found match:', !!match, match ? `Title: ${match.opponent}` : 'No match found')
     
     if (!match) {
@@ -68,7 +74,11 @@ export async function PUT(
       params.id,
       body,
       { new: true, runValidators: true }
-    )
+    ).populate({
+      path: 'playerStats.playerId',
+      model: Player,
+      select: 'name shirtNumber position devRole avatar'
+    })
     
     if (!match) {
       return NextResponse.json(
