@@ -65,7 +65,8 @@ const PlayerSchema: Schema = new Schema({
       'QA Engineer',
       'Project Manager',
       'Tech Lead',
-      'Software Architect'
+      'Software Architect',
+      'AI Engineer'
     ]
   },
   teamRole: {

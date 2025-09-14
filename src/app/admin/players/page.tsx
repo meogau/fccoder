@@ -32,7 +32,7 @@ export default function AdminPlayersPage() {
   const devRoles = [
     'Frontend Engineer', 'Backend Engineer', 'Full-stack Developer',
     'DevOps Engineer', 'UI/UX Designer', 'Mobile Developer', 'Data Engineer',
-    'QA Engineer', 'Project Manager', 'Tech Lead', 'Software Architect'
+    'QA Engineer', 'Project Manager', 'Tech Lead', 'Software Architect', 'AI Engineer'
   ]
 
   const teamRoles = [

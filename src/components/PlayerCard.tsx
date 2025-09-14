@@ -34,6 +34,7 @@ export default function PlayerCard({ player }: PlayerCardProps) {
       case 'Project Manager': return '📋'
       case 'Tech Lead': return '👑'
       case 'Software Architect': return '🏗️'
+      case 'AI Engineer': return '🤖'
       default: return '💻'
     }
   }
