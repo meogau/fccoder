@@ -305,23 +305,6 @@ export default function HomePage() {
                     ))}
                   </div>
 
-                  {teamInfo.achievements && teamInfo.achievements.length > 0 && (
-                    <div>
-                      <h4 className="text-lg font-mono text-neon-blue mb-4">
-                        <span className="text-cyber-gray">// </span>ACHIEVEMENTS
-                      </h4>
-                      <div className="space-y-2">
-                        {teamInfo.achievements.map((achievement, index) => (
-                          <div key={index} className="flex items-center space-x-2">
-                            <span className="text-neon-green">🏆</span>
-                            <span className="font-mono text-sm text-cyber-light-gray">
-                              {achievement}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

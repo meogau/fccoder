@@ -14,12 +14,7 @@ export async function GET() {
         name: 'FC Coder',
         biography: 'A team of passionate developers who love both coding and football. We combine our technical skills with our love for the beautiful game, bringing innovation to every match.',
         foundedYear: 2024,
-        location: 'Vietnam',
-        achievements: [
-          'Local Developer League Champions 2024',
-          'Best Team Chemistry Award',
-          'Most Innovative Playing Style'
-        ]
+        location: 'Vietnam'
       })
       await team.save()
     }

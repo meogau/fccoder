@@ -27,18 +27,24 @@ async function authenticatedPUT(request: NextRequest) {
     await connectDB()
     
     const body = await request.json()
+    console.log('PUT /api/team/protected - Body received:', body)
     
     let team = await Team.findOne({ isActive: true })
+    console.log('PUT /api/team/protected - Existing team:', team)
     
     if (!team) {
       // Create new team if none exists
+      console.log('Creating new team...')
       team = new Team(body)
     } else {
       // Update existing team
+      console.log('Updating existing team...')
       Object.assign(team, body)
     }
     
+    console.log('Team before save:', team)
     await team.save()
+    console.log('Team after save:', team)
     
     return NextResponse.json(
       { success: true, data: team },

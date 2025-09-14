@@ -6,7 +6,6 @@ export interface ITeam extends Document {
   biography: string
   foundedYear: number
   location: string
-  achievements: string[]
   isActive: boolean
 }
 
@@ -40,10 +39,6 @@ const TeamSchema: Schema = new Schema({
     trim: true,
     default: 'Vietnam'
   },
-  achievements: [{ 
-    type: String,
-    trim: true
-  }],
   isActive: { 
     type: Boolean, 
     default: true 

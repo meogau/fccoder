@@ -17,7 +17,6 @@ export default function AdminTeamPage() {
     biography: '',
     foundedYear: '',
     location: '',
-    achievements: [] as string[],
     coverPhoto: ''
   })
   const [coverFile, setCoverFile] = useState<File | null>(null)
@@ -40,7 +39,6 @@ export default function AdminTeamPage() {
           biography: data.data.biography || '',
           foundedYear: data.data.foundedYear?.toString() || new Date().getFullYear().toString(),
           location: data.data.location || '',
-          achievements: data.data.achievements || [],
           coverPhoto: data.data.coverPhoto || ''
         })
         setCoverPreview(data.data.coverPhoto || '')
@@ -88,8 +86,7 @@ export default function AdminTeamPage() {
         body: JSON.stringify({
           ...formData,
           foundedYear: parseInt(formData.foundedYear),
-          coverPhoto: coverPhotoUrl,
-          achievements: formData.achievements.filter(achievement => achievement.trim() !== '')
+          coverPhoto: coverPhotoUrl
         })
       })
 
@@ -141,28 +138,6 @@ export default function AdminTeamPage() {
     }
   }
 
-  const addAchievement = () => {
-    setFormData(prev => ({
-      ...prev,
-      achievements: [...prev.achievements, '']
-    }))
-  }
-
-  const removeAchievement = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      achievements: prev.achievements.filter((_, i) => i !== index)
-    }))
-  }
-
-  const updateAchievement = (index: number, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      achievements: prev.achievements.map((achievement, i) => 
-        i === index ? value : achievement
-      )
-    }))
-  }
 
   if (!user) {
     return <div>Please login to access this page</div>
@@ -259,19 +234,6 @@ export default function AdminTeamPage() {
                         {teamInfo.biography}
                       </div>
                     </div>
-                    {teamInfo.achievements.length > 0 && (
-                      <div>
-                        <div className="font-mono text-neon-blue text-sm mb-1">achievements:</div>
-                        <div className="space-y-1">
-                          {teamInfo.achievements.map((achievement, index) => (
-                            <div key={index} className="flex items-center space-x-2">
-                              <span className="text-neon-green">🏆</span>
-                              <span className="font-mono text-cyber-light-gray text-sm">{achievement}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -394,43 +356,6 @@ export default function AdminTeamPage() {
                     />
                   </div>
 
-                  {/* Achievements */}
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <label className="block text-sm font-mono text-cyber-gray">
-                        <span className="text-neon-blue">achievements:</span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={addAchievement}
-                        className="px-4 py-2 bg-neon-blue/20 text-neon-blue border border-neon-blue/30 rounded font-mono text-sm hover:bg-neon-blue/30 transition-all duration-300"
-                      >
-                        addAchievement()
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {formData.achievements.map((achievement, index) => (
-                        <div key={index} className="flex items-center space-x-3">
-                          <span className="text-neon-green">🏆</span>
-                          <input
-                            type="text"
-                            value={achievement}
-                            onChange={(e) => updateAchievement(index, e.target.value)}
-                            placeholder="Enter achievement..."
-                            className="flex-1 px-3 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeAchievement(index)}
-                            className="px-3 py-2 bg-red-400/20 text-red-400 border border-red-400/30 rounded font-mono text-sm hover:bg-red-400/30 transition-all duration-300"
-                          >
-                            remove()
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
 
                   <div className="flex items-center space-x-4">
                     <button
