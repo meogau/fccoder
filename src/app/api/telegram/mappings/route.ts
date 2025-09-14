@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Read mappings from file
-    let mappings = {}
+    let mappings: Record<string, string> = {}
     try {
       if (fs.existsSync(MAPPINGS_FILE)) {
         const data = fs.readFileSync(MAPPINGS_FILE, 'utf8')
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Read existing mappings
-    let mappings = {}
+    let mappings: Record<string, string> = {}
     try {
       if (fs.existsSync(MAPPINGS_FILE)) {
         const data = fs.readFileSync(MAPPINGS_FILE, 'utf8')
