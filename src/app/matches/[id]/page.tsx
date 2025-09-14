@@ -92,9 +92,17 @@ export default function MatchDetailsPage() {
 
   const getPlayersList = () => {
     if (!match) return []
+    // Show all players who participated in the match
     return match.playerStats
-      .filter(stat => stat.goals > 0 || stat.assists > 0 || stat.isStarter)
-      .sort((a, b) => (b.isStarter ? 1 : 0) - (a.isStarter ? 1 : 0))
+      .sort((a, b) => {
+        // Sort by: starters first, then by shirt number
+        if (a.isStarter !== b.isStarter) {
+          return b.isStarter ? 1 : -1
+        }
+        const playerA = a.playerId as unknown as IPlayer
+        const playerB = b.playerId as unknown as IPlayer
+        return playerA.shirtNumber - playerB.shirtNumber
+      })
   }
 
   if (loading) {
@@ -273,14 +281,24 @@ export default function MatchDetailsPage() {
             {match.playerStats.length > 0 && (
               <div className="code-block rounded-lg p-6">
                 <h2 className="text-xl font-mono text-neon-green mb-6">
-                  <span className="text-cyber-gray">// </span>SQUAD ({getPlayersList().length})
+                  <span className="text-cyber-gray">// </span>SQUAD_LIST ({getPlayersList().length} players)
                 </h2>
                 
                 <div className="space-y-3">
-                  {getPlayersList().map((stat) => {
+                  {getPlayersList().map((stat, index) => {
                     const player = stat.playerId as unknown as IPlayer
+                    const isFirstSub = index > 0 && stat.isStarter === false && getPlayersList()[index - 1].isStarter === true
+                    
                     return (
-                      <div key={String(stat.playerId._id)} className="flex items-center space-x-3 bg-cyber-darker/30 rounded p-3">
+                      <div key={String(stat.playerId._id)}>
+                        {isFirstSub && (
+                          <div className="flex items-center my-4">
+                            <div className="flex-1 h-px bg-neon-blue/30"></div>
+                            <span className="px-3 text-xs font-mono text-neon-blue">SUBSTITUTES</span>
+                            <div className="flex-1 h-px bg-neon-blue/30"></div>
+                          </div>
+                        )}
+                        <div className="flex items-center space-x-3 bg-cyber-darker/30 rounded p-3">
                         <div className="w-6 h-6 bg-neon-green/20 rounded-full flex items-center justify-center border border-neon-green/50">
                           <span className="text-neon-green font-mono font-bold text-xs">
                             {player.shirtNumber}
@@ -290,8 +308,10 @@ export default function MatchDetailsPage() {
                         <div className="flex-1 min-w-0">
                           <div className="font-mono font-bold text-cyber-light-gray text-sm">
                             {player.name}
-                            {stat.isStarter && (
-                              <span className="ml-2 text-neon-green text-xs">[C]</span>
+                            {stat.isStarter ? (
+                              <span className="ml-2 text-neon-green text-xs font-bold">[STARTER]</span>
+                            ) : (
+                              <span className="ml-2 text-neon-blue text-xs">[SUB]</span>
                             )}
                           </div>
                           <div className="text-xs font-mono text-cyber-gray">
@@ -302,6 +322,7 @@ export default function MatchDetailsPage() {
                         <div className="text-xs font-mono text-cyber-gray">
                           {stat.goals > 0 && <span className="text-neon-green mr-1">⚽{stat.goals}</span>}
                           {stat.assists > 0 && <span className="text-neon-blue">🎯{stat.assists}</span>}
+                        </div>
                         </div>
                       </div>
                     )

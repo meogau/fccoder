@@ -74,18 +74,30 @@ export default function PlayerCard({ player }: PlayerCardProps) {
               )}
             </div>
             <div>
-              <h3 className="text-neon-green font-mono font-bold text-lg flex items-center space-x-2">
-                <span>{player.name}</span>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-neon-green font-mono font-bold text-lg">
+                  {player.name}
+                </h3>
                 {player.teamRole && (
-                  <span className={`text-xs px-2 py-1 rounded font-mono font-bold ${
-                    player.teamRole === 'captain' || player.teamRole === 'vice-captain' 
-                      ? 'bg-neon-green/20 text-neon-green border border-neon-green/30' 
-                      : 'bg-cyber-darker text-cyber-gray border border-cyber-gray/30'
+                  <div className={`px-3 py-1 rounded-full text-xs font-mono font-bold flex items-center space-x-1 ${
+                    player.teamRole === 'captain' 
+                      ? 'bg-yellow-400/20 text-yellow-400 border border-yellow-400/30' :
+                    player.teamRole === 'vice-captain' 
+                      ? 'bg-blue-400/20 text-blue-400 border border-blue-400/30' :
+                      'bg-cyber-darker text-cyber-gray border border-cyber-gray/30'
                   }`}>
-                    {player.teamRole === 'captain' ? 'C' : player.teamRole === 'vice-captain' ? 'V' : 'M'}
-                  </span>
+                    <span>
+                      {player.teamRole === 'captain' ? '👑' : 
+                       player.teamRole === 'vice-captain' ? '⭐' : '🛡️'}
+                    </span>
+                    <span>
+                      {player.teamRole === 'captain' ? 'CAPTAIN' :
+                       player.teamRole === 'vice-captain' ? 'VICE CAPTAIN' : 
+                       'MEMBER'}
+                    </span>
+                  </div>
                 )}
-              </h3>
+              </div>
               <div className="flex items-center space-x-2">
                 <p className={`text-sm font-mono ${getPositionColor(player.position)}`}>
                   {player.position}

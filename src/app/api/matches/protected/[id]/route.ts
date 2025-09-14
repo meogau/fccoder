@@ -39,9 +39,13 @@ async function authenticatedPUT(request: NextRequest, { params }: { params: { id
     console.log(`New status: ${body.status}`)
     console.log(`Player stats count: ${body.playerStats?.length || 0}`)
     
-    if (existingMatch && body.status === 'completed') {
-      // If changing from non-completed to completed, add stats
-      if (existingMatch.status !== 'completed') {
+    // Handle player stats updates based on status changes
+    if (existingMatch) {
+      const wasCompleted = existingMatch.status === 'completed'
+      const isCompleted = body.status === 'completed'
+      
+      if (!wasCompleted && isCompleted) {
+        // NEW COMPLETION: Add stats for first time
         console.log('🆕 NEW MATCH COMPLETION - Adding stats')
         for (const stat of body.playerStats) {
           if (stat.playerId) {
@@ -58,21 +62,18 @@ async function authenticatedPUT(request: NextRequest, { params }: { params: { id
             )
           }
         }
-      } 
-      // If already completed, handle stat differences
-      else {
-        console.log('📝 UPDATING COMPLETED MATCH - Reverting and re-applying stats')
-        
-        // First, revert old stats
-        console.log('⬅️ Reverting old stats...')
+      } else if (wasCompleted && !isCompleted) {
+        // CHANGED TO NON-COMPLETED: Remove all previous stats
+        console.log('❌ MATCH STATUS CHANGED TO NON-COMPLETED - Reverting all stats')
         for (const oldStat of existingMatch.playerStats) {
           if (oldStat.playerId) {
             const playerId = oldStat.playerId._id || oldStat.playerId
-            console.log(`Reverting stats for player ${playerId}: -${oldStat.goals} goals, -${oldStat.assists} assists`)
+            console.log(`Reverting all stats for player ${playerId}: -1 match, -${oldStat.goals} goals, -${oldStat.assists} assists`)
             await Player.findByIdAndUpdate(
               playerId,
               {
                 $inc: {
+                  matchesPlayed: -1,
                   goals: -(oldStat.goals || 0),
                   assists: -(oldStat.assists || 0)
                 }
@@ -80,26 +81,61 @@ async function authenticatedPUT(request: NextRequest, { params }: { params: { id
             )
           }
         }
+      } else if (wasCompleted && isCompleted) {
+        // UPDATING COMPLETED MATCH: Calculate differences
+        console.log('📝 UPDATING COMPLETED MATCH - Calculating stat differences')
         
-        // Then apply new stats
-        console.log('➡️ Applying new stats...')
-        for (const newStat of body.playerStats) {
-          if (newStat.playerId) {
-            console.log(`Adding new stats for player ${newStat.playerId}: ${newStat.goals} goals, ${newStat.assists} assists`)
+        // Create maps for easy lookup
+        const oldStatsMap = new Map()
+        existingMatch.playerStats.forEach(stat => {
+          if (stat.playerId) {
+            const playerId = (stat.playerId._id || stat.playerId).toString()
+            oldStatsMap.set(playerId, {
+              goals: stat.goals || 0,
+              assists: stat.assists || 0
+            })
+          }
+        })
+        
+        const newStatsMap = new Map()
+        body.playerStats.forEach(stat => {
+          if (stat.playerId) {
+            newStatsMap.set(stat.playerId.toString(), {
+              goals: stat.goals || 0,
+              assists: stat.assists || 0
+            })
+          }
+        })
+        
+        // Get all unique player IDs
+        const allPlayerIds = new Set([...oldStatsMap.keys(), ...newStatsMap.keys()])
+        
+        // Apply differences for each player
+        for (const playerId of allPlayerIds) {
+          const oldStats = oldStatsMap.get(playerId) || { goals: 0, assists: 0 }
+          const newStats = newStatsMap.get(playerId) || { goals: 0, assists: 0 }
+          
+          const goalsDiff = newStats.goals - oldStats.goals
+          const assistsDiff = newStats.assists - oldStats.assists
+          
+          if (goalsDiff !== 0 || assistsDiff !== 0) {
+            console.log(`Updating stats for player ${playerId}: goals ${goalsDiff >= 0 ? '+' : ''}${goalsDiff}, assists ${assistsDiff >= 0 ? '+' : ''}${assistsDiff}`)
             await Player.findByIdAndUpdate(
-              newStat.playerId,
+              playerId,
               {
                 $inc: {
-                  goals: newStat.goals || 0,
-                  assists: newStat.assists || 0
+                  goals: goalsDiff,
+                  assists: assistsDiff
                 }
               }
             )
           }
         }
+      } else {
+        console.log(`📊 NO STATS UPDATE NEEDED: was ${existingMatch.status} -> now ${body.status}`)
       }
     } else {
-      console.log(`❌ NOT UPDATING STATS: status=${body.status}, hasMatch=${!!existingMatch}`)
+      console.log(`❌ NO EXISTING MATCH FOUND`)
     }
     console.log(`=== END DEBUG ===`)
     
@@ -169,7 +205,8 @@ async function authenticatedDELETE(request: NextRequest, { params }: { params: {
 
     await connectDB()
     
-    const match = await Match.findByIdAndDelete(params.id)
+    // Get match before deletion to revert player stats
+    const match = await Match.findById(params.id).populate('playerStats.playerId')
     
     if (!match) {
       return NextResponse.json(
@@ -177,6 +214,37 @@ async function authenticatedDELETE(request: NextRequest, { params }: { params: {
         { status: 404 }
       )
     }
+    
+    console.log(`=== MATCH DELETION DEBUG ===`)
+    console.log(`Deleting match ID: ${params.id}`)
+    console.log(`Match status: ${match.status}`)
+    console.log(`Player stats count: ${match.playerStats.length}`)
+    
+    // If match was completed, revert player statistics
+    if (match.status === 'completed' && match.playerStats.length > 0) {
+      console.log('🔄 REVERTING PLAYER STATS ON DELETE')
+      for (const stat of match.playerStats) {
+        if (stat.playerId) {
+          const playerId = stat.playerId._id || stat.playerId
+          console.log(`Reverting stats for player ${playerId}: -1 match, -${stat.goals} goals, -${stat.assists} assists`)
+          await Player.findByIdAndUpdate(
+            playerId,
+            {
+              $inc: {
+                matchesPlayed: -1,
+                goals: -(stat.goals || 0),
+                assists: -(stat.assists || 0)
+              }
+            }
+          )
+        }
+      }
+    }
+    
+    // Now delete the match
+    await Match.findByIdAndDelete(params.id)
+    console.log(`✅ Match deleted successfully`)
+    console.log(`=== END DELETE DEBUG ===`)
     
     return NextResponse.json(
       { success: true, message: 'Match deleted successfully' },
