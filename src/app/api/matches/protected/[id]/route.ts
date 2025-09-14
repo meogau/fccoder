@@ -108,10 +108,11 @@ async function authenticatedPUT(request: NextRequest, { params }: { params: { id
         })
         
         // Get all unique player IDs
-        const allPlayerIds = new Set([...Array.from(oldStatsMap.keys()), ...Array.from(newStatsMap.keys())])
+        const allPlayerIds = Array.from(new Set([...Array.from(oldStatsMap.keys()), ...Array.from(newStatsMap.keys())]))
         
         // Apply differences for each player
-        for (const playerId of allPlayerIds) {
+        for (let i = 0; i < allPlayerIds.length; i++) {
+          const playerId = allPlayerIds[i]
           const oldStats = oldStatsMap.get(playerId) || { goals: 0, assists: 0 }
           const newStats = newStatsMap.get(playerId) || { goals: 0, assists: 0 }
           
