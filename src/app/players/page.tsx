@@ -34,9 +34,9 @@ export default function PlayersPage() {
       const data = await response.json()
       
       if (data.success) {
-        // Sort by team role (captain -> vice-captain -> member), then by shirt number
+        // Sort by team role (captain -> member -> vice-captain), then by shirt number
         const sortedPlayers = data.data.sort((a: IPlayer, b: IPlayer) => {
-          const roleOrder = { captain: 0, 'vice-captain': 1, member: 2 }
+          const roleOrder = { captain: 0, member: 1, 'vice-captain': 2 }
           const aRole = (a.teamRole as keyof typeof roleOrder) || 'member'
           const bRole = (b.teamRole as keyof typeof roleOrder) || 'member'
           
