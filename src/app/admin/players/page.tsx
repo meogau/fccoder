@@ -22,6 +22,7 @@ export default function AdminPlayersPage() {
     nationality: '',
     bio: '',
     devRole: 'Full-stack Developer',
+    teamRole: 'member',
     avatar: ''
   })
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -32,6 +33,12 @@ export default function AdminPlayersPage() {
     'Frontend Engineer', 'Backend Engineer', 'Full-stack Developer',
     'DevOps Engineer', 'UI/UX Designer', 'Mobile Developer', 'Data Engineer',
     'QA Engineer', 'Project Manager', 'Tech Lead', 'Software Architect'
+  ]
+
+  const teamRoles = [
+    { value: 'captain', label: 'Captain', icon: '👑' },
+    { value: 'vice-captain', label: 'Vice Captain', icon: '⭐' },
+    { value: 'member', label: 'Member', icon: '🛡️' }
   ]
 
   useEffect(() => {
@@ -45,7 +52,18 @@ export default function AdminPlayersPage() {
       const response = await fetch('/api/players')
       const data = await response.json()
       if (data.success) {
-        setPlayers(data.data.sort((a: IPlayer, b: IPlayer) => a.shirtNumber - b.shirtNumber))
+        // Sort by team role (captain -> vice-captain -> member), then by shirt number
+        const sortedPlayers = data.data.sort((a: IPlayer, b: IPlayer) => {
+          const roleOrder = { captain: 0, 'vice-captain': 1, member: 2 }
+          const aRole = (a.teamRole as keyof typeof roleOrder) || 'member'
+          const bRole = (b.teamRole as keyof typeof roleOrder) || 'member'
+          
+          if (roleOrder[aRole] !== roleOrder[bRole]) {
+            return roleOrder[aRole] - roleOrder[bRole]
+          }
+          return a.shirtNumber - b.shirtNumber
+        })
+        setPlayers(sortedPlayers)
       }
     } catch (error) {
       console.error('Error fetching players:', error)
@@ -94,6 +112,7 @@ export default function AdminPlayersPage() {
           shirtNumber: parseInt(formData.shirtNumber),
           birthYear: parseInt(formData.birthYear),
           joinDate: new Date(formData.joinDate).toISOString(),
+          teamRole: formData.teamRole,
           avatar: avatarUrl
         })
       })
@@ -121,6 +140,7 @@ export default function AdminPlayersPage() {
       nationality: '',
       bio: '',
       devRole: 'Full-stack Developer',
+      teamRole: 'member',
       avatar: ''
     })
     setAvatarFile(null)
@@ -142,6 +162,7 @@ export default function AdminPlayersPage() {
       nationality: player.nationality,
       bio: player.bio || '',
       devRole: player.devRole,
+      teamRole: player.teamRole || 'member',
       avatar: player.avatar || ''
     })
     setAvatarPreview(player.avatar || '')
@@ -406,6 +427,24 @@ export default function AdminPlayersPage() {
                     ))}
                   </select>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-mono text-cyber-gray mb-2">
+                    <span className="text-neon-blue">teamRole:</span>
+                  </label>
+                  <select
+                    name="teamRole"
+                    value={formData.teamRole}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
+                  >
+                    {teamRoles.map(role => (
+                      <option key={role.value} value={role.value}>
+                        {role.icon} {role.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -494,6 +533,16 @@ export default function AdminPlayersPage() {
                           {player.name}
                         </h3>
                         <div className="flex items-center space-x-4 text-sm font-mono text-cyber-gray">
+                          <span className={`px-2 py-1 rounded ${
+                            player.teamRole === 'captain' ? 'bg-yellow-400/20 text-yellow-400 border border-yellow-400/30' :
+                            player.teamRole === 'vice-captain' ? 'bg-blue-400/20 text-blue-400 border border-blue-400/30' :
+                            'bg-cyber-darker text-cyber-gray border border-cyber-gray/30'
+                          }`}>
+                            {player.teamRole === 'captain' ? '👑 Captain' :
+                             player.teamRole === 'vice-captain' ? '⭐ Vice Captain' : 
+                             '🛡️ Member'}
+                          </span>
+                          <span>•</span>
                           <span>{player.position}</span>
                           <span>•</span>
                           <span>{player.devRole}</span>

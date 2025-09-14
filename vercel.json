@@ -1,21 +1,3 @@
 {
-  "version": 2,
-  "name": "fc-coder",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "JWT_SECRET": "@jwt_secret",
-    "ADMIN_EMAIL": "@admin_email",
-    "ADMIN_PASSWORD_HASH": "@admin_password_hash"
-  },
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "maxDuration": 30
-    }
-  }
+  "buildCommand": "npm run build"
 }

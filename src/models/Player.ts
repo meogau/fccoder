@@ -8,6 +8,7 @@ export interface IPlayer extends Document {
   nationality: string
   bio?: string
   devRole: string
+  teamRole: 'captain' | 'vice-captain' | 'member'
   goals: number
   assists: number
   matchesPlayed: number
@@ -67,6 +68,12 @@ const PlayerSchema: Schema = new Schema({
       'Software Architect'
     ]
   },
+  teamRole: {
+    type: String,
+    required: true,
+    enum: ['captain', 'vice-captain', 'member'],
+    default: 'member'
+  },
   goals: { 
     type: Number, 
     default: 0,
@@ -105,6 +112,7 @@ const PlayerSchema: Schema = new Schema({
 PlayerSchema.index({ shirtNumber: 1 })
 PlayerSchema.index({ position: 1 })
 PlayerSchema.index({ devRole: 1 })
+PlayerSchema.index({ teamRole: 1 })
 PlayerSchema.index({ isActive: 1 })
 
 export default mongoose.models.Player || mongoose.model<IPlayer>('Player', PlayerSchema)

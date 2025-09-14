@@ -34,7 +34,18 @@ export default function PlayersPage() {
       const data = await response.json()
       
       if (data.success) {
-        setPlayers(data.data)
+        // Sort by team role (captain -> vice-captain -> member), then by shirt number
+        const sortedPlayers = data.data.sort((a: IPlayer, b: IPlayer) => {
+          const roleOrder = { captain: 0, 'vice-captain': 1, member: 2 }
+          const aRole = (a.teamRole as keyof typeof roleOrder) || 'member'
+          const bRole = (b.teamRole as keyof typeof roleOrder) || 'member'
+          
+          if (roleOrder[aRole] !== roleOrder[bRole]) {
+            return roleOrder[aRole] - roleOrder[bRole]
+          }
+          return a.shirtNumber - b.shirtNumber
+        })
+        setPlayers(sortedPlayers)
       } else {
         setError('Failed to fetch players')
       }
@@ -179,6 +190,7 @@ export default function PlayersPage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
               >
+                <option value="teamRole">Team Role</option>
                 <option value="shirtNumber">Shirt Number</option>
                 <option value="name">Name</option>
                 <option value="matchesPlayed">Matches Played</option>

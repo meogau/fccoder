@@ -73,12 +73,24 @@ export default function PlayerCard({ player }: PlayerCardProps) {
               )}
             </div>
             <div>
-              <h3 className="text-neon-green font-mono font-bold text-lg">
-                {player.name}
+              <h3 className="text-neon-green font-mono font-bold text-lg flex items-center space-x-2">
+                <span>{player.name}</span>
+                {player.teamRole === 'captain' && <span className="text-yellow-400">👑</span>}
+                {player.teamRole === 'vice-captain' && <span className="text-blue-400">⭐</span>}
               </h3>
-              <p className={`text-sm font-mono ${getPositionColor(player.position)}`}>
-                {player.position}
-              </p>
+              <div className="flex items-center space-x-2">
+                <p className={`text-sm font-mono ${getPositionColor(player.position)}`}>
+                  {player.position}
+                </p>
+                {player.teamRole && player.teamRole !== 'member' && (
+                  <span className={`text-xs px-2 py-0.5 rounded font-mono ${
+                    player.teamRole === 'captain' ? 'bg-yellow-400/20 text-yellow-400' :
+                    'bg-blue-400/20 text-blue-400'
+                  }`}>
+                    {player.teamRole === 'captain' ? 'C' : 'VC'}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div className="text-2xl">

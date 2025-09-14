@@ -27,6 +27,22 @@ async function authenticatedPUT(request: NextRequest, { params }: { params: { id
     await connectDB()
     
     const body = await request.json()
+    
+    // Check if trying to update to captain when one already exists
+    if (body.teamRole === 'captain') {
+      const existingCaptain = await Player.findOne({ 
+        teamRole: 'captain', 
+        isActive: true,
+        _id: { $ne: params.id } // Exclude current player
+      })
+      if (existingCaptain) {
+        return NextResponse.json(
+          { success: false, error: 'A captain already exists. Please choose vice-captain or member role.' },
+          { status: 400 }
+        )
+      }
+    }
+    
     const player = await Player.findByIdAndUpdate(
       params.id,
       body,
