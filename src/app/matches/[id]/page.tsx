@@ -9,7 +9,6 @@ import { IPlayer } from '@/models/Player'
 
 interface PlayerStat {
   playerId: IPlayer
-  minutesPlayed: number
   goals: number
   assists: number
   isStarter: boolean
@@ -94,7 +93,7 @@ export default function MatchDetailsPage() {
   const getPlayersList = () => {
     if (!match) return []
     return match.playerStats
-      .filter(stat => stat.minutesPlayed > 0)
+      .filter(stat => stat.goals > 0 || stat.assists > 0 || stat.isStarter)
       .sort((a, b) => (b.isStarter ? 1 : 0) - (a.isStarter ? 1 : 0))
   }
 
@@ -296,7 +295,7 @@ export default function MatchDetailsPage() {
                             )}
                           </div>
                           <div className="text-xs font-mono text-cyber-gray">
-                            {player.position} • {stat.minutesPlayed}'
+                            {player.position} • #{player.shirtNumber}
                           </div>
                         </div>
                         
