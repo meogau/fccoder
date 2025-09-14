@@ -1,33 +1,28 @@
-# 🤖 Telegram Bot Setup Guide
+# 🤖 Telegram Bot Setup Guide - AUTOMATIC VERSION
 
 ## Bot Information
 - **Bot Token**: `8322005416:AAEjBxVegZsJrFFEEh80R0KwM6_cJeurJ9k`
 - **Bot Username**: Contact @BotFather on Telegram to get the username
-- **Webhook URL**: `https://fccoder-cii3l6g4m-meogaus-projects.vercel.app/api/telegram/webhook`
+- **Webhook URL**: `https://fccoder-ollsntm5r-meogaus-projects.vercel.app/api/telegram/webhook`
 
-## 🚀 How to Setup Notifications
+## 🎉 NEW: FULLY AUTOMATIC SETUP!
 
-### Step 1: Players Message the Bot
-1. Players need to find your bot on Telegram (ask @BotFather for bot username)
-2. Start a conversation with the bot
-3. Send `/start` command
-4. Bot will respond with their **Chat ID**
+### ✅ **No More Manual Mapping!** 
+Players can now join and get linked automatically!
 
-### Step 2: Admin Maps Phone Numbers to Chat IDs
-1. Get the Chat ID from players (from Step 1)
-2. In the code, edit `src/lib/telegram.ts`
-3. Add mapping in the `PHONE_TO_CHAT_ID_MAP` object:
+### Step 1: Player Messages Bot (That's It!)
+1. Player finds your bot on Telegram
+2. Sends `/start` command
+3. 🤖 **Bot automatically detects them by name**
+4. ✅ **Account linked instantly!**
+5. 🎉 **Ready to receive notifications!**
 
-```typescript
-const PHONE_TO_CHAT_ID_MAP: Record<string, string> = {
-  '+84123456789': '123456789',  // Example mapping
-  '+84987654321': '987654321',  // Add more as needed
-}
-```
-
-### Step 3: Test Notifications
-1. Update a match result with goals/assists
-2. Players should receive congratulatory messages!
+### Step 2: Nothing! (It's Automatic)
+The bot will:
+- ✅ Match player name from Telegram with database
+- ✅ Save their Chat ID automatically  
+- ✅ Send confirmation message
+- ✅ Ready for notifications!
 
 ## 📱 Message Format
 When players score goals or assists, they receive:
@@ -58,5 +53,23 @@ curl -X POST "https://api.telegram.org/bot8322005416:AAEjBxVegZsJrFFEEh80R0KwM6_
 - Notifications are sent asynchronously (won't block match updates)
 - All Telegram interactions are logged in server console
 
-## 🚀 Ready to Use!
-The bot is now live and ready to send notifications when match results are updated! 🎉
+## 🧠 How the Auto-Detection Works
+1. **Name Matching**: Bot compares Telegram first name + last name with player names in database
+2. **Fuzzy Search**: Tries exact match first, then first name only
+3. **Auto-Link**: Saves Telegram Chat ID to player profile
+4. **Instant Ready**: Player immediately ready for notifications!
+
+## 🎯 What Players See
+```
+👋 Chào mừng Nguyen Van A!
+
+🎉 Tuyệt vời! Đã tự động liên kết với tài khoản của Nguyen Van A!
+
+✅ Bạn sẽ nhận thông báo khi ghi bàn hoặc kiến tạo
+⚽️ Chúc bạn thi đấu tốt!
+```
+
+## 🚀 Ready to Use - ZERO CONFIGURATION!
+Players just need to message the bot - everything else is automatic! 🎉
+
+**Live at**: https://fccoder-ollsntm5r-meogaus-projects.vercel.app
