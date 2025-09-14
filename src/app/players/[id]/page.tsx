@@ -122,7 +122,7 @@ export default function PlayerDetailPage() {
                 <h1 className="text-xl font-mono text-neon-green">README.md</h1>
               </div>
               <div className="flex items-center space-x-2 text-xs font-mono text-cyber-gray">
-                <span>Last updated: {new Date(player.updatedAt || player.joinedDate).toLocaleDateString()}</span>
+                <span>Joined: {new Date(player.joinedDate).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function PlayerDetailPage() {
 {`{
   "playerInfo": {
     "name": "${player.name}",
-    "age": ${player.age},
+    "age": ${new Date().getFullYear() - (player.birthYear || 0)},
     "nationality": "${player.nationality}",
     "position": "${player.position}",
     "shirtNumber": ${player.shirtNumber}
@@ -274,7 +274,7 @@ export default function PlayerDetailPage() {
                   <span className="text-neon-green">Created:</span> {new Date(player.joinedDate).toLocaleDateString()}
                 </div>
                 <div>
-                  <span className="text-neon-green">Player ID:</span> {player._id}
+                  <span className="text-neon-green">Player ID:</span> {String(player._id)}
                 </div>
               </div>
             </div>

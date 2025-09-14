@@ -120,12 +120,18 @@ export default function PlayerCard({ player }: PlayerCardProps) {
         </div>
 
         {/* Footer */}
-        <div className="mt-4 pt-4 border-t border-neon-green/20 flex items-center justify-between text-xs font-mono text-cyber-gray">
-          <span>#{player.shirtNumber}</span>
-          <span>{player.nationality}</span>
-          <span className={player.isActive ? 'text-neon-green' : 'text-red-400'}>
-            {player.isActive ? 'active' : 'inactive'}
-          </span>
+        <div className="mt-4 pt-4 border-t border-neon-green/20 space-y-1">
+          <div className="flex items-center justify-between text-xs font-mono text-cyber-gray">
+            <span>#{player.shirtNumber}</span>
+            <span>{player.nationality}</span>
+            <span className={player.isActive ? 'text-neon-green' : 'text-red-400'}>
+              {player.isActive ? 'active' : 'inactive'}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-xs font-mono text-cyber-gray">
+            <span>Age: {new Date().getFullYear() - (player.birthYear || 0)}</span>
+            <span>Joined: {player.joinDate ? new Date(player.joinDate).getFullYear() : 'N/A'}</span>
+          </div>
         </div>
       </div>
     </Link>

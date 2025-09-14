@@ -4,7 +4,7 @@ export interface IPlayer extends Document {
   name: string
   shirtNumber: number
   position: string
-  age: number
+  birthYear: number
   nationality: string
   bio?: string
   devRole: string
@@ -12,7 +12,8 @@ export interface IPlayer extends Document {
   assists: number
   matchesPlayed: number
   avatar?: string
-  joinedDate: Date
+  joinDate: Date
+  joinedDate: Date // Keep for backward compatibility
   isActive: boolean
 }
 
@@ -34,11 +35,11 @@ const PlayerSchema: Schema = new Schema({
     required: true,
     enum: ['Goalkeeper', 'Defender', 'Midfielder', 'Forward']
   },
-  age: { 
+  birthYear: { 
     type: Number, 
     required: true,
-    min: 16,
-    max: 50
+    min: 1970,
+    max: new Date().getFullYear() - 16
   },
   nationality: { 
     type: String, 
@@ -84,6 +85,10 @@ const PlayerSchema: Schema = new Schema({
   avatar: { 
     type: String,
     trim: true
+  },
+  joinDate: { 
+    type: Date, 
+    required: true
   },
   joinedDate: { 
     type: Date, 

@@ -60,12 +60,20 @@ export default function AdminPage() {
       color: 'neon-blue'
     },
     {
+      title: 'Team Management',
+      description: 'Edit team info, cover photo, and biography',
+      href: '/admin/team',
+      icon: '🏆',
+      stats: 'Team profile',
+      color: 'neon-orange'
+    },
+    {
       title: 'Team Statistics',
       description: 'View comprehensive team analytics',
       href: '/admin/stats',
       icon: '📊',
       stats: 'Coming soon',
-      color: 'neon-orange'
+      color: 'neon-pink'
     },
     {
       title: 'System Settings',
@@ -73,7 +81,7 @@ export default function AdminPage() {
       href: '/admin/settings',
       icon: '⚙️',
       stats: 'System config',
-      color: 'neon-pink'
+      color: 'cyber-gray'
     }
   ]
 

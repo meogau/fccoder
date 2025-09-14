@@ -13,6 +13,8 @@ export default function AdminMatchesPage() {
   const [players, setPlayers] = useState<IPlayer[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [editingMatch, setEditingMatch] = useState<IMatch | null>(null)
   const [formData, setFormData] = useState({
     opponent: '',
     date: '',
@@ -76,8 +78,12 @@ export default function AdminMatchesPage() {
     }
     
     try {
-      const response = await fetch('/api/matches/protected', {
-        method: 'POST',
+      const isEditing = showEditForm && editingMatch
+      const url = isEditing ? `/api/matches/protected/${editingMatch._id}` : '/api/matches/protected'
+      const method = isEditing ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('fc-coder-token')}`
@@ -91,14 +97,13 @@ export default function AdminMatchesPage() {
       const data = await response.json()
       if (data.success) {
         resetForm()
-        setShowAddForm(false)
         fetchMatches()
       } else {
         alert('Error: ' + data.error)
       }
     } catch (error) {
-      console.error('Error adding match:', error)
-      alert('Failed to add match')
+      console.error('Error saving match:', error)
+      alert('Failed to save match')
     }
   }
 
@@ -114,6 +119,58 @@ export default function AdminMatchesPage() {
       goalsAgainst: 0,
       playerStats: []
     })
+    setShowAddForm(false)
+    setShowEditForm(false)
+    setEditingMatch(null)
+  }
+
+  const handleEdit = (match: IMatch) => {
+    setEditingMatch(match)
+    const matchDate = new Date(match.date)
+    const localDateTime = new Date(matchDate.getTime() - matchDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+    
+    setFormData({
+      opponent: match.opponent,
+      date: localDateTime,
+      venue: match.venue,
+      isHome: match.isHome,
+      competition: match.competition,
+      status: match.status,
+      goalsFor: match.goalsFor,
+      goalsAgainst: match.goalsAgainst,
+      playerStats: match.playerStats.map(stat => ({
+        playerId: (stat.playerId._id || stat.playerId).toString(),
+        minutesPlayed: stat.minutesPlayed,
+        goals: stat.goals,
+        assists: stat.assists,
+        isStarter: stat.isStarter
+      }))
+    })
+    setShowAddForm(false)
+    setShowEditForm(true)
+  }
+
+  const handleDelete = async (matchId: string) => {
+    if (confirm('Are you sure you want to delete this match?')) {
+      try {
+        const response = await fetch(`/api/matches/protected/${matchId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('fc-coder-token')}`
+          }
+        })
+
+        const data = await response.json()
+        if (data.success) {
+          fetchMatches()
+        } else {
+          alert('Error: ' + data.error)
+        }
+      } catch (error) {
+        console.error('Error deleting match:', error)
+        alert('Failed to delete match')
+      }
+    }
   }
 
   const addPlayerStat = () => {
@@ -186,18 +243,24 @@ export default function AdminMatchesPage() {
           </div>
           
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => {
+              if (showEditForm) {
+                resetForm()
+              } else {
+                setShowAddForm(!showAddForm)
+              }
+            }}
             className="px-6 py-3 bg-neon-green text-cyber-dark font-mono font-bold rounded hover:bg-neon-blue transition-all duration-300"
           >
-            {showAddForm ? 'cancel()' : 'addMatch()'}
+            {showAddForm || showEditForm ? 'cancel()' : 'addMatch()'}
           </button>
         </div>
 
-        {/* Add Match Form */}
-        {showAddForm && (
+        {/* Add/Edit Match Form */}
+        {(showAddForm || showEditForm) && (
           <div className="code-block rounded-lg p-6 mb-8">
             <h2 className="text-xl font-mono text-neon-green mb-6">
-              <span className="text-cyber-gray">// </span>ADD_NEW_MATCH
+              <span className="text-cyber-gray">// </span>{showEditForm ? 'EDIT_MATCH' : 'ADD_NEW_MATCH'}
             </h2>
             
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -362,7 +425,7 @@ export default function AdminMatchesPage() {
                           >
                             <option value="">Select player</option>
                             {players.map(player => (
-                              <option key={player._id} value={player._id}>
+                              <option key={String(player._id)} value={String(player._id)}>
                                 #{player.shirtNumber} {player.name}
                               </option>
                             ))}
@@ -423,14 +486,11 @@ export default function AdminMatchesPage() {
                   type="submit"
                   className="px-6 py-2 bg-neon-green text-cyber-dark font-mono font-bold rounded hover:bg-neon-blue transition-all duration-300"
                 >
-                  create()
+                  {showEditForm ? 'update()' : 'create()'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    resetForm()
-                    setShowAddForm(false)
-                  }}
+                  onClick={resetForm}
                   className="px-6 py-2 bg-cyber-darker border border-red-400/30 text-red-400 font-mono rounded hover:bg-red-400/10 transition-all duration-300"
                 >
                   cancel()
@@ -466,7 +526,7 @@ export default function AdminMatchesPage() {
                 {matches.map((match) => {
                   const result = getMatchResult(match)
                   return (
-                    <div key={match._id} className="flex items-center justify-between p-4 bg-cyber-darker/30 rounded border border-neon-green/10 hover:border-neon-green/30 transition-all duration-300">
+                    <div key={String(match._id)} className="flex items-center justify-between p-4 bg-cyber-darker/30 rounded border border-neon-green/10 hover:border-neon-green/30 transition-all duration-300">
                       <div className="flex items-center space-x-4">
                         <div className={`px-3 py-1 rounded text-xs font-mono border ${getResultColor(result)}`}>
                           {result}
@@ -498,6 +558,20 @@ export default function AdminMatchesPage() {
                         )}
                         <div className="text-xs">
                           {match.playerStats.length} players
+                        </div>
+                        <div className="flex items-center space-x-2 ml-4">
+                          <button
+                            onClick={() => handleEdit(match)}
+                            className="px-3 py-1 bg-neon-blue/20 text-neon-blue border border-neon-blue/30 rounded font-mono text-xs hover:bg-neon-blue/30 transition-all duration-300"
+                          >
+                            edit()
+                          </button>
+                          <button
+                            onClick={() => handleDelete(String(match._id))}
+                            className="px-3 py-1 bg-red-400/20 text-red-400 border border-red-400/30 rounded font-mono text-xs hover:bg-red-400/30 transition-all duration-300"
+                          >
+                            delete()
+                          </button>
                         </div>
                       </div>
                     </div>

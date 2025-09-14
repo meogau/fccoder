@@ -18,7 +18,7 @@ export async function GET(
     }
     
     const match = await Match.findById(params.id)
-      .populate('playerStats.playerId', 'name shirtNumber position devRole')
+      .populate('playerStats.playerId', 'name shirtNumber position devRole avatar')
     
     if (!match) {
       return NextResponse.json(
@@ -60,7 +60,7 @@ export async function PUT(
       params.id,
       body,
       { new: true, runValidators: true }
-    ).populate('playerStats.playerId', 'name shirtNumber position devRole')
+    ).populate('playerStats.playerId', 'name shirtNumber position devRole avatar')
     
     if (!match) {
       return NextResponse.json(

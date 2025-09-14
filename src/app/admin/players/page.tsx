@@ -11,11 +11,14 @@ export default function AdminPlayersPage() {
   const [players, setPlayers] = useState<IPlayer[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [editingPlayer, setEditingPlayer] = useState<IPlayer | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     shirtNumber: '',
     position: 'Midfielder',
-    age: '',
+    birthYear: '',
+    joinDate: '',
     nationality: '',
     bio: '',
     devRole: 'Full-stack Developer',
@@ -76,8 +79,12 @@ export default function AdminPlayersPage() {
         }
       }
 
-      const response = await fetch('/api/players/protected', {
-        method: 'POST',
+      const isEditing = showEditForm && editingPlayer
+      const url = isEditing ? `/api/players/protected/${editingPlayer._id}` : '/api/players/protected'
+      const method = isEditing ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('fc-coder-token')}`
@@ -85,33 +92,83 @@ export default function AdminPlayersPage() {
         body: JSON.stringify({
           ...formData,
           shirtNumber: parseInt(formData.shirtNumber),
-          age: parseInt(formData.age),
+          birthYear: parseInt(formData.birthYear),
+          joinDate: new Date(formData.joinDate).toISOString(),
           avatar: avatarUrl
         })
       })
 
       const data = await response.json()
       if (data.success) {
-        setFormData({
-          name: '',
-          shirtNumber: '',
-          position: 'Midfielder',
-          age: '',
-          nationality: '',
-          bio: '',
-          devRole: 'Full-stack Developer',
-          avatar: ''
-        })
-        setAvatarFile(null)
-        setAvatarPreview('')
-        setShowAddForm(false)
+        resetForm()
         fetchPlayers()
       } else {
         alert('Error: ' + data.error)
       }
     } catch (error) {
-      console.error('Error adding player:', error)
-      alert('Failed to add player')
+      console.error('Error saving player:', error)
+      alert('Failed to save player')
+    }
+  }
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      shirtNumber: '',
+      position: 'Midfielder',
+      birthYear: '',
+      joinDate: '',
+      nationality: '',
+      bio: '',
+      devRole: 'Full-stack Developer',
+      avatar: ''
+    })
+    setAvatarFile(null)
+    setAvatarPreview('')
+    setShowAddForm(false)
+    setShowEditForm(false)
+    setEditingPlayer(null)
+  }
+
+  const handleEdit = (player: IPlayer) => {
+    setEditingPlayer(player)
+    const joinDateStr = player.joinDate ? new Date(player.joinDate).toISOString().split('T')[0] : ''
+    setFormData({
+      name: player.name,
+      shirtNumber: player.shirtNumber.toString(),
+      position: player.position,
+      birthYear: player.birthYear?.toString() || '',
+      joinDate: joinDateStr,
+      nationality: player.nationality,
+      bio: player.bio || '',
+      devRole: player.devRole,
+      avatar: player.avatar || ''
+    })
+    setAvatarPreview(player.avatar || '')
+    setShowAddForm(false)
+    setShowEditForm(true)
+  }
+
+  const handleDelete = async (playerId: string) => {
+    if (confirm('Are you sure you want to delete this player?')) {
+      try {
+        const response = await fetch(`/api/players/protected/${playerId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('fc-coder-token')}`
+          }
+        })
+
+        const data = await response.json()
+        if (data.success) {
+          fetchPlayers()
+        } else {
+          alert('Error: ' + data.error)
+        }
+      } catch (error) {
+        console.error('Error deleting player:', error)
+        alert('Failed to delete player')
+      }
     }
   }
 
@@ -170,18 +227,24 @@ export default function AdminPlayersPage() {
           </div>
           
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => {
+              if (showEditForm) {
+                resetForm()
+              } else {
+                setShowAddForm(!showAddForm)
+              }
+            }}
             className="px-6 py-3 bg-neon-green text-cyber-dark font-mono font-bold rounded hover:bg-neon-blue transition-all duration-300"
           >
-            {showAddForm ? 'cancel()' : 'addPlayer()'}
+            {showAddForm || showEditForm ? 'cancel()' : 'addPlayer()'}
           </button>
         </div>
 
-        {/* Add Player Form */}
-        {showAddForm && (
+        {/* Add/Edit Player Form */}
+        {(showAddForm || showEditForm) && (
           <div className="code-block rounded-lg p-6 mb-8">
             <h2 className="text-xl font-mono text-neon-green mb-6">
-              <span className="text-cyber-gray">// </span>ADD_NEW_PLAYER
+              <span className="text-cyber-gray">// </span>{showEditForm ? 'EDIT_PLAYER' : 'ADD_NEW_PLAYER'}
             </h2>
             
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -284,18 +347,32 @@ export default function AdminPlayersPage() {
 
                 <div>
                   <label className="block text-sm font-mono text-cyber-gray mb-2">
-                    <span className="text-neon-blue">age:</span>
+                    <span className="text-neon-blue">birthYear:</span>
                   </label>
                   <input
                     type="number"
-                    name="age"
-                    value={formData.age}
+                    name="birthYear"
+                    value={formData.birthYear}
                     onChange={handleInputChange}
                     required
-                    min="16"
-                    max="50"
+                    min="1970"
+                    max={new Date().getFullYear() - 16}
                     className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
-                    placeholder="16-50"
+                    placeholder="e.g., 1990"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-mono text-cyber-gray mb-2">
+                    <span className="text-neon-blue">joinDate:</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="joinDate"
+                    value={formData.joinDate}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
                   />
                 </div>
 
@@ -350,11 +427,11 @@ export default function AdminPlayersPage() {
                   type="submit"
                   className="px-6 py-2 bg-neon-green text-cyber-dark font-mono font-bold rounded hover:bg-neon-blue transition-all duration-300"
                 >
-                  create()
+                  {showEditForm ? 'update()' : 'create()'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowAddForm(false)}
+                  onClick={resetForm}
                   className="px-6 py-2 bg-cyber-darker border border-red-400/30 text-red-400 font-mono rounded hover:bg-red-400/10 transition-all duration-300"
                 >
                   cancel()
@@ -388,7 +465,7 @@ export default function AdminPlayersPage() {
             ) : (
               <div className="space-y-4">
                 {players.map((player) => (
-                  <div key={player._id} className="flex items-center justify-between p-4 bg-cyber-darker/30 rounded border border-neon-green/10 hover:border-neon-green/30 transition-all duration-300">
+                  <div key={String(player._id)} className="flex items-center justify-between p-4 bg-cyber-darker/30 rounded border border-neon-green/10 hover:border-neon-green/30 transition-all duration-300">
                     <div className="flex items-center space-x-4">
                       <div className="w-10 h-10 bg-neon-green/20 rounded-full flex items-center justify-center border border-neon-green/50 relative overflow-hidden">
                         {player.avatar ? (
@@ -422,6 +499,8 @@ export default function AdminPlayersPage() {
                           <span>{player.devRole}</span>
                           <span>•</span>
                           <span>{player.nationality}</span>
+                          <span>•</span>
+                          <span>Age: {new Date().getFullYear() - (player.birthYear || 0)}</span>
                         </div>
                       </div>
                     </div>
@@ -437,6 +516,20 @@ export default function AdminPlayersPage() {
                           : 'bg-red-400/20 text-red-400 border border-red-400/30'
                       }`}>
                         {player.isActive ? 'active' : 'inactive'}
+                      </div>
+                      <div className="flex items-center space-x-2 ml-4">
+                        <button
+                          onClick={() => handleEdit(player)}
+                          className="px-3 py-1 bg-neon-blue/20 text-neon-blue border border-neon-blue/30 rounded font-mono text-xs hover:bg-neon-blue/30 transition-all duration-300"
+                        >
+                          edit()
+                        </button>
+                        <button
+                          onClick={() => handleDelete(String(player._id))}
+                          className="px-3 py-1 bg-red-400/20 text-red-400 border border-red-400/30 rounded font-mono text-xs hover:bg-red-400/30 transition-all duration-300"
+                        >
+                          delete()
+                        </button>
                       </div>
                     </div>
                   </div>

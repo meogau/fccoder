@@ -13,6 +13,8 @@ export default function PlayersPage() {
   const [filterPosition, setFilterPosition] = useState<string>('')
   const [filterDevRole, setFilterDevRole] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [sortBy, setSortBy] = useState<string>('shirtNumber')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   const positions = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward']
   const devRoles = [
@@ -53,6 +55,23 @@ export default function PlayersPage() {
     return matchesSearch && matchesPosition && matchesDevRole
   })
 
+  const sortedPlayers = [...filteredPlayers].sort((a, b) => {
+    let aValue: any = a[sortBy as keyof IPlayer]
+    let bValue: any = b[sortBy as keyof IPlayer]
+    
+    // Handle string comparisons
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      aValue = aValue.toLowerCase()
+      bValue = bValue.toLowerCase()
+    }
+    
+    if (sortOrder === 'asc') {
+      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+    } else {
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+    }
+  })
+
   const clearFilters = () => {
     setFilterPosition('')
     setFilterDevRole('')
@@ -71,7 +90,7 @@ export default function PlayersPage() {
               <span className="text-cyber-gray">// </span>SQUAD_MEMBERS
             </h1>
             <p className="text-xl text-cyber-gray font-mono">
-              Team.getPlayers().filter(player => player.isActive)
+              Team.getPlayers().filter(player =&gt; player.isActive)
             </p>
           </div>
 
@@ -150,6 +169,41 @@ export default function PlayersPage() {
               </select>
             </div>
 
+            {/* Sort By */}
+            <div className="min-w-[180px]">
+              <label className="block text-sm font-mono text-cyber-gray mb-2">
+                <span className="text-neon-blue">sortBy:</span>
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
+              >
+                <option value="shirtNumber">Shirt Number</option>
+                <option value="name">Name</option>
+                <option value="matchesPlayed">Matches Played</option>
+                <option value="goals">Goals Scored</option>
+                <option value="assists">Assists</option>
+                <option value="position">Position</option>
+                <option value="devRole">Dev Role</option>
+              </select>
+            </div>
+
+            {/* Sort Order */}
+            <div className="min-w-[120px]">
+              <label className="block text-sm font-mono text-cyber-gray mb-2">
+                <span className="text-neon-blue">order:</span>
+              </label>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
+              >
+                <option value="asc">ASC ↑</option>
+                <option value="desc">DESC ↓</option>
+              </select>
+            </div>
+
             {/* Clear Filters */}
             <button
               onClick={clearFilters}
@@ -186,7 +240,7 @@ export default function PlayersPage() {
                 </button>
               </div>
             </div>
-          ) : filteredPlayers.length === 0 ? (
+          ) : sortedPlayers.length === 0 ? (
             <div className="text-center">
               <div className="code-block rounded-lg p-8 max-w-md mx-auto">
                 <div className="font-mono text-cyber-gray">
@@ -205,7 +259,7 @@ export default function PlayersPage() {
               {/* Results Counter */}
               <div className="mb-8 text-center">
                 <p className="font-mono text-cyber-gray">
-                  <span className="text-neon-blue">results:</span> {filteredPlayers.length} 
+                  <span className="text-neon-blue">results:</span> {sortedPlayers.length} 
                   <span className="text-cyber-gray"> / </span>
                   <span className="text-neon-green">{players.length}</span> players
                 </p>
@@ -213,8 +267,8 @@ export default function PlayersPage() {
 
               {/* Players Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredPlayers.map((player) => (
-                  <PlayerCard key={player._id} player={player} />
+                {sortedPlayers.map((player) => (
+                  <PlayerCard key={String(player._id)} player={player} />
                 ))}
               </div>
             </>

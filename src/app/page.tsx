@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import TerminalCommand from '@/components/TerminalCommand'
 import GlitchText from '@/components/GlitchText'
+import { ITeam } from '@/models/Team'
 
 interface Match {
   _id: string
@@ -20,6 +21,17 @@ interface Match {
 export default function HomePage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [nextMatch, setNextMatch] = useState<Match | null>(null)
+  const [teamInfo, setTeamInfo] = useState<ITeam | null>(null)
+  const [teamStats, setTeamStats] = useState({
+    totalPlayers: 0,
+    activePlayers: 0,
+    totalMatches: 0,
+    totalGoals: 0,
+    wins: 0,
+    draws: 0,
+    losses: 0,
+    winRate: 0
+  })
   const [isLoading, setIsLoading] = useState(true)
 
   const terminalSteps = [
@@ -38,21 +50,64 @@ export default function HomePage() {
   ]
 
   useEffect(() => {
-    const fetchNextMatch = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/matches?status=scheduled&limit=1')
-        const data = await response.json()
-        if (data.success && data.data.length > 0) {
-          setNextMatch(data.data[0])
+        const [matchResponse, teamResponse, playersResponse, allMatchesResponse] = await Promise.all([
+          fetch('/api/matches?status=scheduled&limit=1'),
+          fetch('/api/team'),
+          fetch('/api/players'),
+          fetch('/api/matches?limit=1000') // Get all matches for statistics
+        ])
+        
+        const matchData = await matchResponse.json()
+        if (matchData.success && matchData.data.length > 0) {
+          setNextMatch(matchData.data[0])
+        }
+
+        const teamData = await teamResponse.json()
+        if (teamData.success) {
+          setTeamInfo(teamData.data)
+        }
+
+        const playersData = await playersResponse.json()
+        const allMatchesData = await allMatchesResponse.json()
+
+        if (playersData.success && allMatchesData.success) {
+          const players = playersData.data
+          const matches = allMatchesData.data
+          
+          // Calculate team statistics
+          const completedMatches = matches.filter((match: any) => match.status === 'completed')
+          const totalGoals = completedMatches.reduce((sum: number, match: any) => sum + (match.goalsFor || 0), 0)
+          
+          let wins = 0, draws = 0, losses = 0
+          completedMatches.forEach((match: any) => {
+            if (match.goalsFor > match.goalsAgainst) wins++
+            else if (match.goalsFor === match.goalsAgainst) draws++
+            else losses++
+          })
+          
+          const winRate = completedMatches.length > 0 ? Math.round((wins / completedMatches.length) * 100) : 0
+          
+          setTeamStats({
+            totalPlayers: players.length,
+            activePlayers: players.filter((p: any) => p.isActive).length,
+            totalMatches: completedMatches.length,
+            totalGoals,
+            wins,
+            draws,
+            losses,
+            winRate
+          })
         }
       } catch (error) {
-        console.error('Failed to fetch next match:', error)
+        console.error('Failed to fetch data:', error)
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchNextMatch()
+    fetchData()
   }, [])
 
   const handleStepComplete = () => {
@@ -187,6 +242,93 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Team Info Section */}
+      {teamInfo && (
+        <section className="py-16 bg-cyber-dark/50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold font-mono text-neon-green mb-4">
+                <span className="text-cyber-gray">// </span>ABOUT_THE_TEAM
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              {/* Team Cover Photo */}
+              <div className="order-2 lg:order-1">
+                <div className="code-block rounded-lg overflow-hidden">
+                  {teamInfo.coverPhoto ? (
+                    <div className="relative">
+                      <img 
+                        src={teamInfo.coverPhoto} 
+                        alt="FC Coder Team"
+                        className="w-full h-80 object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-cyber-dark/80 via-transparent to-transparent"></div>
+                      <div className="absolute bottom-4 left-4">
+                        <div className="font-mono text-neon-green font-bold text-lg">
+                          {teamInfo.name}
+                        </div>
+                        <div className="font-mono text-cyber-gray text-sm">
+                          Est. {teamInfo.foundedYear} • {teamInfo.location}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full h-80 bg-cyber-darker/50 border-2 border-dashed border-neon-green/30 flex flex-col items-center justify-center">
+                      <div className="text-6xl mb-4">⚽</div>
+                      <div className="font-mono text-neon-green font-bold text-lg">
+                        {teamInfo.name}
+                      </div>
+                      <div className="font-mono text-cyber-gray text-sm">
+                        Est. {teamInfo.foundedYear} • {teamInfo.location}
+                      </div>
+                      <div className="font-mono text-cyber-gray text-xs mt-2">
+                        Team photo coming soon...
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Team Biography */}
+              <div className="order-1 lg:order-2">
+                <div className="code-block rounded-lg p-8">
+                  <h3 className="text-xl font-mono text-neon-green mb-6">
+                    <span className="text-cyber-gray">// </span>OUR_STORY
+                  </h3>
+                  
+                  <div className="font-mono text-cyber-light-gray text-base leading-relaxed mb-6">
+                    {teamInfo.biography.split('\n').map((paragraph, index) => (
+                      <p key={index} className="mb-4 last:mb-0">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+
+                  {teamInfo.achievements && teamInfo.achievements.length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-mono text-neon-blue mb-4">
+                        <span className="text-cyber-gray">// </span>ACHIEVEMENTS
+                      </h4>
+                      <div className="space-y-2">
+                        {teamInfo.achievements.map((achievement, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <span className="text-neon-green">🏆</span>
+                            <span className="font-mono text-sm text-cyber-light-gray">
+                              {achievement}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Stats Section */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -196,18 +338,42 @@ export default function HomePage() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { label: 'const DEVELOPERS', value: '11+', desc: 'Active Squad Members' },
-              { label: 'let GOALS_SCORED', value: '∞', desc: 'In Code & Football' },
-              { label: 'var EXPERIENCE', value: '10+ years', desc: 'Combined Dev Experience' }
-            ].map((stat, index) => (
-              <div key={index} className="code-block rounded-lg p-6 text-center scanline">
-                <div className="font-mono text-neon-blue text-lg mb-2">{stat.label}</div>
-                <div className="text-4xl font-bold text-neon-green mb-2">{stat.value}</div>
-                <div className="text-cyber-gray text-sm">{stat.desc}</div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="code-block rounded-lg p-6 text-center scanline">
+              <div className="font-mono text-neon-blue text-lg mb-2">const SQUAD_SIZE</div>
+              <div className="text-4xl font-bold text-neon-green mb-2">
+                {isLoading ? '...' : teamStats.activePlayers}
               </div>
-            ))}
+              <div className="text-cyber-gray text-sm">
+                Active Players ({isLoading ? '...' : teamStats.totalPlayers} total)
+              </div>
+            </div>
+            
+            <div className="code-block rounded-lg p-6 text-center scanline">
+              <div className="font-mono text-neon-blue text-lg mb-2">let GOALS_SCORED</div>
+              <div className="text-4xl font-bold text-neon-green mb-2">
+                {isLoading ? '...' : teamStats.totalGoals}
+              </div>
+              <div className="text-cyber-gray text-sm">Total Goals Scored</div>
+            </div>
+            
+            <div className="code-block rounded-lg p-6 text-center scanline">
+              <div className="font-mono text-neon-blue text-lg mb-2">var MATCHES_PLAYED</div>
+              <div className="text-4xl font-bold text-neon-green mb-2">
+                {isLoading ? '...' : teamStats.totalMatches}
+              </div>
+              <div className="text-cyber-gray text-sm">
+                W:{isLoading ? '...' : teamStats.wins} D:{isLoading ? '...' : teamStats.draws} L:{isLoading ? '...' : teamStats.losses}
+              </div>
+            </div>
+            
+            <div className="code-block rounded-lg p-6 text-center scanline">
+              <div className="font-mono text-neon-blue text-lg mb-2">function WIN_RATE()</div>
+              <div className="text-4xl font-bold text-neon-green mb-2">
+                {isLoading ? '...' : `${teamStats.winRate}%`}
+              </div>
+              <div className="text-cyber-gray text-sm">Success Rate</div>
+            </div>
           </div>
         </div>
       </section>

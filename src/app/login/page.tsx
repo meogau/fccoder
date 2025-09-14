@@ -148,16 +148,6 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Demo Credentials */}
-          <div className="text-center">
-            <div className="code-block rounded-lg p-4 bg-cyber-darker/30">
-              <div className="text-xs font-mono text-cyber-gray space-y-1">
-                <div className="text-neon-orange mb-2">// Demo Credentials:</div>
-                <div><span className="text-neon-blue">email:</span> admin@fccoder.com</div>
-                <div><span className="text-neon-blue">password:</span> admin123</div>
-              </div>
-            </div>
-          </div>
 
           {/* Security Notice */}
           <div className="text-center text-xs font-mono text-cyber-gray">

@@ -113,21 +113,55 @@ export default function Navbar() {
         {isMenuOpen && (
           <div className="md:hidden bg-cyber-darker/95 border-t border-neon-green/20">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`block px-3 py-2 font-mono text-sm transition-all duration-300 hover:text-neon-green hover:bg-neon-green/10 rounded ${
-                    isActive(link.href) 
-                      ? 'text-neon-green bg-neon-green/10' 
-                      : 'text-cyber-light-gray'
-                  }`}
-                >
-                  <span className="text-cyber-gray mr-1">$</span>
-                  {link.command}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                // Show admin link only if user is logged in
+                if (link.href === '/admin' && !user) return null
+                
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`block px-3 py-2 font-mono text-sm transition-all duration-300 hover:text-neon-green hover:bg-neon-green/10 rounded ${
+                      isActive(link.href) 
+                        ? 'text-neon-green bg-neon-green/10' 
+                        : 'text-cyber-light-gray'
+                    }`}
+                  >
+                    <span className="text-cyber-gray mr-1">$</span>
+                    {link.command}
+                  </Link>
+                )
+              })}
+              
+              {/* Auth Actions for Mobile */}
+              <div className="px-3 py-2 border-t border-neon-green/20 mt-4">
+                {user ? (
+                  <div className="space-y-2">
+                    <div className="font-mono text-xs text-cyber-gray">
+                      <span className="text-neon-green">admin@</span>fccoder
+                    </div>
+                    <button
+                      onClick={() => {
+                        logout()
+                        setIsMenuOpen(false)
+                      }}
+                      className="font-mono text-sm text-red-400 hover:text-red-300 transition-colors duration-300"
+                    >
+                      ./logout()
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="font-mono text-sm text-cyber-light-gray hover:text-neon-green transition-colors duration-300"
+                  >
+                    <span className="text-cyber-gray mr-1">$</span>
+                    ./login
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         )}

@@ -179,7 +179,7 @@ export default function MatchesPage() {
               {/* Git-style timeline */}
               <div className="bg-cyber-darker/20 rounded-lg border border-neon-green/20 overflow-hidden">
                 {matches.map((match, index) => (
-                  <div key={match._id} className={`${index < matches.length - 1 ? 'border-b border-cyber-gray/20' : ''}`}>
+                  <div key={String(match._id)} className={`${index < matches.length - 1 ? 'border-b border-cyber-gray/20' : ''}`}>
                     <MatchCommit match={match} />
                   </div>
                 ))}

@@ -45,7 +45,7 @@ export default function MatchCommit({ match }: MatchCommitProps) {
   }
 
   const generateCommitHash = () => {
-    return match._id.toString().substring(0, 8)
+    return String(match._id).substring(0, 8)
   }
 
   const formatMatchScore = () => {
@@ -120,7 +120,7 @@ export default function MatchCommit({ match }: MatchCommitProps) {
           </h3>
 
           <div className="flex flex-wrap items-center space-x-4 text-sm text-cyber-gray font-mono">
-            <span>{formatDate(match.date)}</span>
+            <span>{formatDate(match.date.toString())}</span>
             <span>{match.isHome ? '🏠 Home' : '✈️ Away'}</span>
             <span>📍 {match.venue}</span>
             {match.attendance && (
