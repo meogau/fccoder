@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
     // Get players with telegram
     const playersWithTelegram = await Player.find({
       isActive: true,
-      telegramChatId: { $exists: true, $ne: null, $ne: '' }
+      telegramChatId: { $exists: true, $nin: [null, ''] }
     }).select('name shirtNumber position telegramChatId')
 
     return NextResponse.json({
