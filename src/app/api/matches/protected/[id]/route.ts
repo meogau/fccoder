@@ -32,11 +32,20 @@ async function authenticatedPUT(request: NextRequest, { params }: { params: { id
     
     // Handle player stats updates
     const existingMatch = await Match.findById(params.id).populate('playerStats.playerId')
+    
+    console.log(`=== MATCH UPDATE DEBUG ===`)
+    console.log(`Match ID: ${params.id}`)
+    console.log(`Existing status: ${existingMatch?.status}`)
+    console.log(`New status: ${body.status}`)
+    console.log(`Player stats count: ${body.playerStats?.length || 0}`)
+    
     if (existingMatch && body.status === 'completed') {
       // If changing from non-completed to completed, add stats
       if (existingMatch.status !== 'completed') {
+        console.log('🆕 NEW MATCH COMPLETION - Adding stats')
         for (const stat of body.playerStats) {
           if (stat.playerId) {
+            console.log(`Adding stats for player ${stat.playerId}: ${stat.goals} goals, ${stat.assists} assists`)
             await Player.findByIdAndUpdate(
               stat.playerId,
               {
@@ -52,11 +61,16 @@ async function authenticatedPUT(request: NextRequest, { params }: { params: { id
       } 
       // If already completed, handle stat differences
       else {
+        console.log('📝 UPDATING COMPLETED MATCH - Reverting and re-applying stats')
+        
         // First, revert old stats
+        console.log('⬅️ Reverting old stats...')
         for (const oldStat of existingMatch.playerStats) {
           if (oldStat.playerId) {
+            const playerId = oldStat.playerId._id || oldStat.playerId
+            console.log(`Reverting stats for player ${playerId}: -${oldStat.goals} goals, -${oldStat.assists} assists`)
             await Player.findByIdAndUpdate(
-              oldStat.playerId._id,
+              playerId,
               {
                 $inc: {
                   goals: -(oldStat.goals || 0),
@@ -68,8 +82,10 @@ async function authenticatedPUT(request: NextRequest, { params }: { params: { id
         }
         
         // Then apply new stats
+        console.log('➡️ Applying new stats...')
         for (const newStat of body.playerStats) {
           if (newStat.playerId) {
+            console.log(`Adding new stats for player ${newStat.playerId}: ${newStat.goals} goals, ${newStat.assists} assists`)
             await Player.findByIdAndUpdate(
               newStat.playerId,
               {
@@ -82,7 +98,10 @@ async function authenticatedPUT(request: NextRequest, { params }: { params: { id
           }
         }
       }
+    } else {
+      console.log(`❌ NOT UPDATING STATS: status=${body.status}, hasMatch=${!!existingMatch}`)
     }
+    console.log(`=== END DEBUG ===`)
     
     const match = await Match.findByIdAndUpdate(
       params.id,
