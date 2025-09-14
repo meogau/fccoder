@@ -14,7 +14,6 @@ export interface IMatch extends Document {
   matchReport?: string
   playerStats: Array<{
     playerId: mongoose.Types.ObjectId
-    minutesPlayed: number
     goals: number
     assists: number
     yellowCards: number
@@ -79,12 +78,6 @@ const MatchSchema: Schema = new Schema({
       type: Schema.Types.ObjectId, 
       ref: 'Player', 
       required: true 
-    },
-    minutesPlayed: { 
-      type: Number, 
-      required: true,
-      min: 0,
-      max: 120
     },
     goals: { 
       type: Number, 
