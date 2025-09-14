@@ -76,21 +76,20 @@ export default function PlayerCard({ player }: PlayerCardProps) {
             <div>
               <h3 className="text-neon-green font-mono font-bold text-lg flex items-center space-x-2">
                 <span>{player.name}</span>
-                {player.teamRole === 'captain' && <span className="text-yellow-400">👑</span>}
-                {player.teamRole === 'vice-captain' && <span className="text-blue-400">⭐</span>}
+                {player.teamRole && (
+                  <span className={`text-xs px-2 py-1 rounded font-mono font-bold ${
+                    player.teamRole === 'captain' || player.teamRole === 'vice-captain' 
+                      ? 'bg-neon-green/20 text-neon-green border border-neon-green/30' 
+                      : 'bg-cyber-darker text-cyber-gray border border-cyber-gray/30'
+                  }`}>
+                    {player.teamRole === 'captain' ? 'C' : player.teamRole === 'vice-captain' ? 'V' : 'M'}
+                  </span>
+                )}
               </h3>
               <div className="flex items-center space-x-2">
                 <p className={`text-sm font-mono ${getPositionColor(player.position)}`}>
                   {player.position}
                 </p>
-                {player.teamRole && player.teamRole !== 'member' && (
-                  <span className={`text-xs px-2 py-0.5 rounded font-mono ${
-                    player.teamRole === 'captain' ? 'bg-yellow-400/20 text-yellow-400' :
-                    'bg-blue-400/20 text-blue-400'
-                  }`}>
-                    {player.teamRole === 'captain' ? 'C' : 'VC'}
-                  </span>
-                )}
               </div>
             </div>
           </div>
@@ -136,7 +135,6 @@ export default function PlayerCard({ player }: PlayerCardProps) {
         <div className="mt-4 pt-4 border-t border-neon-green/20 space-y-1">
           <div className="flex items-center justify-between text-xs font-mono text-cyber-gray">
             <span>#{player.shirtNumber}</span>
-            <span>{player.nationality}</span>
             <span className={player.isActive ? 'text-neon-green' : 'text-red-400'}>
               {player.isActive ? 'active' : 'inactive'}
             </span>

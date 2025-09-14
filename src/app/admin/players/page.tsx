@@ -36,9 +36,9 @@ export default function AdminPlayersPage() {
   ]
 
   const teamRoles = [
-    { value: 'captain', label: 'Captain', icon: '👑' },
-    { value: 'vice-captain', label: 'Vice Captain', icon: '⭐' },
-    { value: 'member', label: 'Member', icon: '🛡️' }
+    { value: 'captain', label: 'Captain', icon: 'C' },
+    { value: 'vice-captain', label: 'Vice Captain', icon: 'V' },
+    { value: 'member', label: 'Member', icon: 'M' }
   ]
 
   useEffect(() => {
@@ -159,7 +159,7 @@ export default function AdminPlayersPage() {
       position: player.position,
       birthYear: player.birthYear?.toString() || '',
       joinDate: joinDateStr,
-      nationality: player.nationality,
+      nationality: player.nationality || '',
       bio: player.bio || '',
       devRole: player.devRole,
       teamRole: player.teamRole || 'member',
@@ -397,20 +397,6 @@ export default function AdminPlayersPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-mono text-cyber-gray mb-2">
-                    <span className="text-neon-blue">nationality:</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="nationality"
-                    value={formData.nationality}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
-                    placeholder="e.g., Vietnam"
-                  />
-                </div>
 
                 <div>
                   <label className="block text-sm font-mono text-cyber-gray mb-2">
@@ -533,21 +519,19 @@ export default function AdminPlayersPage() {
                           {player.name}
                         </h3>
                         <div className="flex items-center space-x-4 text-sm font-mono text-cyber-gray">
-                          <span className={`px-2 py-1 rounded ${
-                            player.teamRole === 'captain' ? 'bg-yellow-400/20 text-yellow-400 border border-yellow-400/30' :
-                            player.teamRole === 'vice-captain' ? 'bg-blue-400/20 text-blue-400 border border-blue-400/30' :
+                          <span className={`px-2 py-1 rounded font-bold ${
+                            player.teamRole === 'captain' ? 'bg-neon-green/20 text-neon-green border border-neon-green/30' :
+                            player.teamRole === 'vice-captain' ? 'bg-neon-green/20 text-neon-green border border-neon-green/30' :
                             'bg-cyber-darker text-cyber-gray border border-cyber-gray/30'
                           }`}>
-                            {player.teamRole === 'captain' ? '👑 Captain' :
-                             player.teamRole === 'vice-captain' ? '⭐ Vice Captain' : 
-                             '🛡️ Member'}
+                            {player.teamRole === 'captain' ? 'C' :
+                             player.teamRole === 'vice-captain' ? 'V' : 
+                             'M'}
                           </span>
                           <span>•</span>
                           <span>{player.position}</span>
                           <span>•</span>
                           <span>{player.devRole}</span>
-                          <span>•</span>
-                          <span>{player.nationality}</span>
                           <span>•</span>
                           <span>Age: {new Date().getFullYear() - (player.birthYear || 0)}</span>
                         </div>

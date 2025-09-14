@@ -44,7 +44,7 @@ const PlayerSchema: Schema = new Schema({
   },
   nationality: { 
     type: String, 
-    required: true,
+    required: false,
     trim: true
   },
   bio: { 
