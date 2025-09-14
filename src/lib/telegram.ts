@@ -1,6 +1,6 @@
 // Telegram notification service for FC Coder
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || 'your-telegram-bot-token'
+const TELEGRAM_BOT_TOKEN = '8322005416:AAEjBxVegZsJrFFEEh80R0KwM6_cJeurJ9k'
 
 interface TelegramMessage {
   phoneNumber: string
@@ -47,18 +47,40 @@ export async function sendTelegramMessage(phoneNumber: string, message: string):
   }
 }
 
-// This function would need to be implemented based on your bot's user management
-// For now, it's a placeholder that returns null
 async function getChatIdFromPhoneNumber(phoneNumber: string): Promise<string | null> {
-  // In a real implementation, you would:
-  // 1. Store user chat IDs when they first interact with your bot
-  // 2. Map phone numbers to chat IDs in your database
-  // 3. Use Telegram's API to get user info if available
+  // Clean phone number format
+  const cleanPhone = phoneNumber.replace(/\s+/g, '').replace(/[()-]/g, '')
   
-  // For demonstration purposes, returning null
-  // You would query your database here to get the chat ID
-  console.log(`Looking up chat ID for phone number: ${phoneNumber}`)
-  return null
+  try {
+    // In browser/client environment, we can't access filesystem
+    // So we'll use a simple hardcoded mapping for now
+    const PHONE_TO_CHAT_ID_MAP: Record<string, string> = {
+      // Add your phone numbers and corresponding Telegram chat IDs here
+      // Example: '+84123456789': '123456789'
+      // Players need to message the bot first to get their chat ID
+      
+      // You can add mappings here manually:
+      // '+84123456789': '123456789',
+    }
+    
+    const chatId = PHONE_TO_CHAT_ID_MAP[cleanPhone]
+    
+    if (chatId) {
+      console.log(`Found chat ID ${chatId} for phone number: ${phoneNumber}`)
+      return chatId
+    }
+    
+    console.log(`No chat ID found for phone number: ${phoneNumber}`)
+    console.log('To add mapping, players need to:')
+    console.log('1. Start a conversation with the bot')
+    console.log('2. Send /start to get their chat ID')
+    console.log('3. Admin adds the mapping manually in code')
+    
+    return null
+  } catch (error) {
+    console.error('Error getting chat ID:', error)
+    return null
+  }
 }
 
 export async function sendMatchResultNotifications(playerStats: Array<{
