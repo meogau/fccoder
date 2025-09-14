@@ -53,10 +53,10 @@ export default function HomePage() {
     const fetchData = async () => {
       try {
         const [matchResponse, teamResponse, playersResponse, allMatchesResponse] = await Promise.all([
-          fetch('/api/matches?status=scheduled&limit=1'),
-          fetch('/api/team'),
-          fetch('/api/players'),
-          fetch('/api/matches?limit=1000') // Get all matches for statistics
+          fetch('/api/matches?status=scheduled&limit=1', { cache: 'no-store' }),
+          fetch('/api/team', { cache: 'no-store' }),
+          fetch('/api/players', { cache: 'no-store' }),
+          fetch('/api/matches?limit=1000', { cache: 'no-store' }) // Get all matches for statistics
         ])
         
         const matchData = await matchResponse.json()
@@ -65,7 +65,9 @@ export default function HomePage() {
         }
 
         const teamData = await teamResponse.json()
+        console.log('Homepage team data:', teamData)
         if (teamData.success) {
+          console.log('Team cover photo:', teamData.data?.coverPhoto)
           setTeamInfo(teamData.data)
         }
 

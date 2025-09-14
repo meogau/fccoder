@@ -72,8 +72,14 @@ export default function AdminTeamPage() {
         })
 
         const uploadData = await uploadResponse.json()
+        console.log('Upload response:', uploadData)
         if (uploadData.success) {
           coverPhotoUrl = uploadData.avatarUrl
+          console.log('New cover photo URL:', coverPhotoUrl)
+        } else {
+          console.error('Upload failed:', uploadData.error)
+          alert('Upload failed: ' + uploadData.error)
+          return
         }
       }
 
@@ -91,12 +97,17 @@ export default function AdminTeamPage() {
       })
 
       const data = await response.json()
+      console.log('Team update response:', data)
       if (data.success) {
+        console.log('Updated team data:', data.data)
         setTeamInfo(data.data)
         setShowEditForm(false)
         setCoverFile(null)
+        // Refresh page to ensure latest data
+        window.location.reload()
         alert('Team information updated successfully!')
       } else {
+        console.error('Team update error:', data.error)
         alert('Error: ' + data.error)
       }
     } catch (error) {
