@@ -13,7 +13,7 @@ export default function PlayersPage() {
   const [filterPosition, setFilterPosition] = useState<string>('')
   const [filterDevRole, setFilterDevRole] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState<string>('shirtNumber')
+  const [sortBy, setSortBy] = useState<string>('teamRole')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   const positions = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward']

@@ -16,6 +16,7 @@ export interface IPlayer extends Document {
   joinDate: Date
   joinedDate: Date // Keep for backward compatibility
   isActive: boolean
+  phoneNumber?: string // Admin only field for Telegram notifications
 }
 
 const PlayerSchema: Schema = new Schema({
@@ -105,6 +106,11 @@ const PlayerSchema: Schema = new Schema({
   isActive: { 
     type: Boolean, 
     default: true 
+  },
+  phoneNumber: {
+    type: String,
+    required: false,
+    trim: true
   }
 }, {
   timestamps: true

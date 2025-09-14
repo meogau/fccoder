@@ -23,7 +23,8 @@ export default function AdminPlayersPage() {
     bio: '',
     devRole: 'Full-stack Developer',
     teamRole: 'member',
-    avatar: ''
+    avatar: '',
+    phoneNumber: ''
   })
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string>('')
@@ -113,7 +114,8 @@ export default function AdminPlayersPage() {
           birthYear: parseInt(formData.birthYear),
           joinDate: new Date(formData.joinDate).toISOString(),
           teamRole: formData.teamRole,
-          avatar: avatarUrl
+          avatar: avatarUrl,
+          phoneNumber: formData.phoneNumber
         })
       })
 
@@ -141,7 +143,8 @@ export default function AdminPlayersPage() {
       bio: '',
       devRole: 'Full-stack Developer',
       teamRole: 'member',
-      avatar: ''
+      avatar: '',
+      phoneNumber: ''
     })
     setAvatarFile(null)
     setAvatarPreview('')
@@ -163,7 +166,8 @@ export default function AdminPlayersPage() {
       bio: player.bio || '',
       devRole: player.devRole,
       teamRole: player.teamRole || 'member',
-      avatar: player.avatar || ''
+      avatar: player.avatar || '',
+      phoneNumber: player.phoneNumber || ''
     })
     setAvatarPreview(player.avatar || '')
     setShowAddForm(false)
@@ -397,6 +401,19 @@ export default function AdminPlayersPage() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-mono text-cyber-gray mb-2">
+                    <span className="text-neon-blue">phoneNumber:</span> (for notifications)
+                  </label>
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
+                    placeholder="+84xxxxxxxxx"
+                  />
+                </div>
 
                 <div>
                   <label className="block text-sm font-mono text-cyber-gray mb-2">

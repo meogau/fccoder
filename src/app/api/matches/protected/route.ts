@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb'
 import Match from '@/models/Match'
 import Player from '@/models/Player'
 import { verifyToken } from '@/lib/auth'
+import { sendMatchResultNotifications } from '@/lib/telegram'
 
 async function authenticatedPOST(request: NextRequest) {
   try {
@@ -50,7 +51,7 @@ async function authenticatedPOST(request: NextRequest) {
     // If match is completed, update player statistics
     if (body.status === 'completed' && body.playerStats && body.playerStats.length > 0) {
       for (const stat of body.playerStats) {
-        if (!stat.playerId || (!stat.goals && !stat.assists && stat.minutesPlayed <= 0)) continue
+        if (!stat.playerId) continue
         
         await Player.findByIdAndUpdate(
           stat.playerId,
@@ -58,7 +59,7 @@ async function authenticatedPOST(request: NextRequest) {
             $inc: { 
               goals: stat.goals || 0,
               assists: stat.assists || 0,
-              matchesPlayed: stat.minutesPlayed > 0 ? 1 : 0
+              matchesPlayed: 1
             }
           }
         )
@@ -66,6 +67,14 @@ async function authenticatedPOST(request: NextRequest) {
     }
     
     await match.populate('playerStats.playerId', 'name shirtNumber position devRole')
+    
+    // Send Telegram notifications if match is completed
+    if (body.status === 'completed' && body.playerStats?.length > 0) {
+      // Send notifications asynchronously (don't wait for completion)
+      sendMatchResultNotifications(body.playerStats).catch(error => {
+        console.error('Failed to send notifications:', error)
+      })
+    }
     
     return NextResponse.json(
       { success: true, data: match },

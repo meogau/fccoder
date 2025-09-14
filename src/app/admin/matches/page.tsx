@@ -26,7 +26,6 @@ export default function AdminMatchesPage() {
     goalsAgainst: 0,
     playerStats: [] as Array<{
       playerId: string
-      minutesPlayed: number
       goals: number
       assists: number
       isStarter: boolean
@@ -140,7 +139,6 @@ export default function AdminMatchesPage() {
       goalsAgainst: match.goalsAgainst,
       playerStats: match.playerStats.map(stat => ({
         playerId: (stat.playerId._id || stat.playerId).toString(),
-        minutesPlayed: stat.minutesPlayed,
         goals: stat.goals,
         assists: stat.assists,
         isStarter: stat.isStarter
@@ -178,7 +176,6 @@ export default function AdminMatchesPage() {
       ...prev,
       playerStats: [...prev.playerStats, {
         playerId: '',
-        minutesPlayed: 0,
         goals: 0,
         assists: 0,
         isStarter: false
@@ -415,7 +412,7 @@ export default function AdminMatchesPage() {
                 <div className="space-y-4">
                   {formData.playerStats.map((stat, index) => (
                     <div key={index} className="bg-cyber-darker/30 rounded p-4 border border-neon-green/10">
-                      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <div className="col-span-2">
                           <label className="block text-xs font-mono text-cyber-gray mb-1">Player</label>
                           <select
@@ -432,17 +429,6 @@ export default function AdminMatchesPage() {
                           </select>
                         </div>
 
-                        <div>
-                          <label className="block text-xs font-mono text-cyber-gray mb-1">Minutes</label>
-                          <input
-                            type="number"
-                            value={stat.minutesPlayed}
-                            onChange={(e) => updatePlayerStat(index, 'minutesPlayed', parseInt(e.target.value) || 0)}
-                            min="0"
-                            max="120"
-                            className="w-full px-3 py-2 text-sm bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
-                          />
-                        </div>
 
                         <div>
                           <label className="block text-xs font-mono text-cyber-gray mb-1">Goals</label>
