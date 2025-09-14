@@ -5,7 +5,9 @@ import Player from '@/models/Player' // Import Player model to register schema
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('GET /api/matches - Starting request')
     await connectDB()
+    console.log('Database connected')
     
     const searchParams = request.nextUrl.searchParams
     const status = searchParams.get('status')
@@ -13,6 +15,8 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const sort = searchParams.get('sort') || 'date'
     const order = searchParams.get('order') || 'desc'
+    
+    console.log('Query params:', { status, limit, page, sort, order })
     
     let query: any = {}
     if (status) query.status = status
@@ -22,13 +26,23 @@ export async function GET(request: NextRequest) {
     
     const skip = (page - 1) * limit
     
+    console.log('MongoDB query:', query)
+    console.log('Sort object:', sortObj)
+    
     const matches = await Match.find(query)
-      .populate('playerStats.playerId', 'name shirtNumber position')
+      .populate({
+        path: 'playerStats.playerId',
+        select: 'name shirtNumber position',
+        model: 'Player'
+      })
       .sort(sortObj)
       .limit(limit)
       .skip(skip)
     
+    console.log('Found matches:', matches.length)
+    
     const total = await Match.countDocuments(query)
+    console.log('Total matches:', total)
     
     return NextResponse.json({ 
       success: true, 
@@ -57,7 +71,11 @@ export async function POST(request: NextRequest) {
     const match = new Match(body)
     await match.save()
     
-    await match.populate('playerStats.playerId', 'name shirtNumber position')
+    await match.populate({
+      path: 'playerStats.playerId',
+      select: 'name shirtNumber position',
+      model: 'Player'
+    })
     
     return NextResponse.json(
       { success: true, data: match },
