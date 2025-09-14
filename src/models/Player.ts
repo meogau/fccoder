@@ -17,6 +17,7 @@ export interface IPlayer extends Document {
   joinedDate: Date // Keep for backward compatibility
   isActive: boolean
   phoneNumber?: string // Admin only field for Telegram notifications
+  telegramChatId?: string // Auto-populated when player joins bot
 }
 
 const PlayerSchema: Schema = new Schema({
@@ -108,6 +109,11 @@ const PlayerSchema: Schema = new Schema({
     default: true 
   },
   phoneNumber: {
+    type: String,
+    required: false,
+    trim: true
+  },
+  telegramChatId: {
     type: String,
     required: false,
     trim: true
