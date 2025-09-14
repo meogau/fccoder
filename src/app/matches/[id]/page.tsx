@@ -308,10 +308,8 @@ export default function MatchDetailsPage() {
                         <div className="flex-1 min-w-0">
                           <div className="font-mono font-bold text-cyber-light-gray text-sm">
                             {player.name}
-                            {stat.isStarter ? (
+                            {stat.isStarter && (
                               <span className="ml-2 text-neon-green text-xs font-bold">[STARTER]</span>
-                            ) : (
-                              <span className="ml-2 text-neon-blue text-xs">[SUB]</span>
                             )}
                           </div>
                           <div className="text-xs font-mono text-cyber-gray">

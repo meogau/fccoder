@@ -74,30 +74,9 @@ export default function PlayerCard({ player }: PlayerCardProps) {
               )}
             </div>
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-neon-green font-mono font-bold text-lg">
-                  {player.name}
-                </h3>
-                {player.teamRole && (
-                  <div className={`px-3 py-1 rounded-full text-xs font-mono font-bold flex items-center space-x-1 ${
-                    player.teamRole === 'captain' 
-                      ? 'bg-yellow-400/20 text-yellow-400 border border-yellow-400/30' :
-                    player.teamRole === 'vice-captain' 
-                      ? 'bg-blue-400/20 text-blue-400 border border-blue-400/30' :
-                      'bg-cyber-darker text-cyber-gray border border-cyber-gray/30'
-                  }`}>
-                    <span>
-                      {player.teamRole === 'captain' ? '👑' : 
-                       player.teamRole === 'vice-captain' ? '⭐' : '🛡️'}
-                    </span>
-                    <span>
-                      {player.teamRole === 'captain' ? 'CAPTAIN' :
-                       player.teamRole === 'vice-captain' ? 'VICE CAPTAIN' : 
-                       'MEMBER'}
-                    </span>
-                  </div>
-                )}
-              </div>
+              <h3 className="text-neon-green font-mono font-bold text-lg mb-1">
+                {player.name}
+              </h3>
               <div className="flex items-center space-x-2">
                 <p className={`text-sm font-mono ${getPositionColor(player.position)}`}>
                   {player.position}
@@ -144,7 +123,30 @@ export default function PlayerCard({ player }: PlayerCardProps) {
         </div>
 
         {/* Footer */}
-        <div className="mt-4 pt-4 border-t border-neon-green/20 space-y-1">
+        <div className="mt-4 pt-4 border-t border-neon-green/20 space-y-2">
+          {/* Team Role */}
+          {player.teamRole && (
+            <div className="flex items-center justify-center">
+              <div className={`px-3 py-1 rounded-full text-xs font-mono font-bold flex items-center space-x-1 ${
+                player.teamRole === 'captain' 
+                  ? 'bg-yellow-400/20 text-yellow-400 border border-yellow-400/30' :
+                player.teamRole === 'vice-captain' 
+                  ? 'bg-blue-400/20 text-blue-400 border border-blue-400/30' :
+                  'bg-cyber-darker text-cyber-gray border border-cyber-gray/30'
+              }`}>
+                <span>
+                  {player.teamRole === 'captain' ? '👑' : 
+                   player.teamRole === 'vice-captain' ? '⭐' : '🛡️'}
+                </span>
+                <span>
+                  {player.teamRole === 'captain' ? 'CAPTAIN' :
+                   player.teamRole === 'vice-captain' ? 'VICE CAPTAIN' : 
+                   'MEMBER'}
+                </span>
+              </div>
+            </div>
+          )}
+          
           <div className="flex items-center justify-between text-xs font-mono text-cyber-gray">
             <span>#{player.shirtNumber}</span>
             <span className={player.isActive ? 'text-neon-green' : 'text-red-400'}>
