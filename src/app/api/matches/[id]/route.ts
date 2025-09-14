@@ -8,17 +8,25 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('GET match details - Starting request for ID:', params.id)
     await connectDB()
+    console.log('Database connected')
     
     if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      console.log('Invalid ObjectId:', params.id)
       return NextResponse.json(
         { success: false, error: 'Invalid match ID' },
         { status: 400 }
       )
     }
     
+    // First check if any matches exist
+    const totalMatches = await Match.countDocuments()
+    console.log('Total matches in database:', totalMatches)
+    
+    console.log('Looking for match with ID:', params.id)
     const match = await Match.findById(params.id)
-      .populate('playerStats.playerId', 'name shirtNumber position devRole avatar')
+    console.log('Found match:', !!match, match ? `Title: ${match.opponent}` : 'No match found')
     
     if (!match) {
       return NextResponse.json(
@@ -60,7 +68,7 @@ export async function PUT(
       params.id,
       body,
       { new: true, runValidators: true }
-    ).populate('playerStats.playerId', 'name shirtNumber position devRole avatar')
+    )
     
     if (!match) {
       return NextResponse.json(
