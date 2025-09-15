@@ -105,6 +105,12 @@ export default function MatchDetailsPage() {
       })
   }
 
+  const getYouTubeVideoId = (url: string) => {
+    const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/
+    const match = url.match(regex)
+    return match ? match[1] : null
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-cyber-dark text-cyber-light-gray">
@@ -210,6 +216,43 @@ export default function MatchDetailsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Match Video */}
+            {match.videoUrl && (
+              <div className="code-block rounded-lg p-6">
+                <h2 className="text-xl font-mono text-neon-green mb-6">
+                  <span className="text-cyber-gray">// </span>MATCH_VIDEO
+                </h2>
+                
+                {getYouTubeVideoId(match.videoUrl) ? (
+                  <div className="aspect-video w-full">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${getYouTubeVideoId(match.videoUrl)}`}
+                      title="Match Video"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full rounded"
+                    ></iframe>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-4 bg-cyber-darker/30 rounded p-4">
+                    <span className="text-neon-blue text-2xl">🎥</span>
+                    <div>
+                      <div className="font-mono text-cyber-light-gray mb-1">Match Video Available</div>
+                      <a 
+                        href={match.videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono text-neon-green hover:text-neon-blue underline transition-colors"
+                      >
+                        {match.videoUrl.length > 50 ? `${match.videoUrl.substring(0, 50)}...` : match.videoUrl}
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Goalscorers */}
             {match.status === 'completed' && getGoalscorers().length > 0 && (

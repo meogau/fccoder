@@ -12,6 +12,7 @@ export interface IMatch extends Document {
   attendance?: number
   weatherConditions?: string
   matchReport?: string
+  videoUrl?: string
   playerStats: Array<{
     playerId: mongoose.Types.ObjectId
     goals: number
@@ -70,6 +71,10 @@ const MatchSchema: Schema = new Schema({
     trim: true
   },
   matchReport: { 
+    type: String,
+    trim: true
+  },
+  videoUrl: { 
     type: String,
     trim: true
   },

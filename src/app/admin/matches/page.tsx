@@ -24,6 +24,7 @@ export default function AdminMatchesPage() {
     status: 'scheduled' as 'scheduled' | 'live' | 'completed' | 'cancelled',
     goalsFor: 0,
     goalsAgainst: 0,
+    videoUrl: '',
     playerStats: [] as Array<{
       playerId: string
       goals: number
@@ -116,6 +117,7 @@ export default function AdminMatchesPage() {
       status: 'scheduled',
       goalsFor: 0,
       goalsAgainst: 0,
+      videoUrl: '',
       playerStats: []
     })
     setShowAddForm(false)
@@ -137,6 +139,7 @@ export default function AdminMatchesPage() {
       status: match.status,
       goalsFor: match.goalsFor,
       goalsAgainst: match.goalsAgainst,
+      videoUrl: match.videoUrl || '',
       playerStats: match.playerStats.map(stat => ({
         playerId: (stat.playerId._id || stat.playerId).toString(),
         goals: stat.goals,
@@ -315,6 +318,19 @@ export default function AdminMatchesPage() {
                     required
                     className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
                     placeholder="League or tournament name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-mono text-cyber-gray mb-2">
+                    <span className="text-neon-blue">videoUrl:</span>
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.videoUrl}
+                    onChange={(e) => setFormData(prev => ({ ...prev, videoUrl: e.target.value }))}
+                    className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
+                    placeholder="https://youtube.com/watch?v=... (optional)"
                   />
                 </div>
 
