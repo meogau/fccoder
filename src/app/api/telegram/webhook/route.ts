@@ -108,20 +108,18 @@ async function sendTelegramMessage(chatId: string, message: string): Promise<boo
 // Helper: Link player to chat ID
 async function linkPlayerToChatId(playerId: string, chatId: string): Promise<boolean> {
   try {
-    const { default: Player } = await import('@/models/Player')
-    const { default: connectDB } = await import('@/lib/mongodb')
-    
-    await connectDB()
-    
-    const player = await Player.findByIdAndUpdate(playerId, {
-      telegramChatId: chatId
-    })
-    
+    const { getPlayerById, updatePlayer } = await import('@/lib/db/playerModel')
+
+    const player = await getPlayerById(playerId)
+
     if (player) {
+      await updatePlayer(playerId, {
+        telegramChatId: chatId
+      })
       console.log(`Linked player ${player.name} (${playerId}) to chat ID ${chatId}`)
       return true
     }
-    
+
     return false
   } catch (error) {
     console.error('Error linking player to chat ID:', error)
@@ -132,41 +130,40 @@ async function linkPlayerToChatId(playerId: string, chatId: string): Promise<boo
 // Helper: Find player by name and auto-link
 async function findPlayerByName(firstName: string, lastName: string, chatId: string): Promise<boolean> {
   try {
-    const { default: Player } = await import('@/models/Player')
-    const { default: connectDB } = await import('@/lib/mongodb')
-    
-    await connectDB()
-    
-    const fullName = `${firstName} ${lastName}`.trim()
-    
+    const { getAllPlayers, updatePlayer } = await import('@/lib/db/playerModel')
+
+    const fullName = `${firstName} ${lastName}`.trim().toLowerCase()
+
+    // Get all players without telegram chat ID
+    const allPlayers = await getAllPlayers()
+    const playersWithoutTelegram = allPlayers.filter(p => !p.telegramChatId)
+
     // Try exact match first
-    let player = await Player.findOne({ 
-      name: { $regex: new RegExp(fullName, 'i') },
-      telegramChatId: { $exists: false }
-    })
-    
+    let player = playersWithoutTelegram.find(p =>
+      p.name.toLowerCase().includes(fullName)
+    )
+
     // Try first name only
     if (!player) {
-      player = await Player.findOne({ 
-        name: { $regex: new RegExp(firstName, 'i') },
-        telegramChatId: { $exists: false }
-      })
+      player = playersWithoutTelegram.find(p =>
+        p.name.toLowerCase().includes(firstName.toLowerCase())
+      )
     }
-    
+
     if (player) {
-      await Player.findByIdAndUpdate(player._id, {
+      await updatePlayer(player.id, {
         telegramChatId: chatId
       })
-      
+
       await sendTelegramMessage(chatId, `🎉 Tuyệt vời! Đã tự động liên kết với tài khoản của ${player.name}!
 
 ✅ Bạn sẽ nhận thông báo khi ghi bàn hoặc kiến tạo
 ⚽️ Chúc bạn thi đấu tốt!`)
-      
-      console.log(`Auto-linked ${fullName} to player ${player.name} (${player._id})`)
+
+      console.log(`Auto-linked ${fullName} to player ${player.name} (${player.id})`)
       return true
     }
-    
+
     return false
   } catch (error) {
     console.error('Error finding player by name:', error)
