@@ -60,10 +60,11 @@ export default function AdminTeamPage() {
       // Handle cover photo upload if file is selected
       if (coverFile) {
         const formDataUpload = new FormData()
-        formDataUpload.append('avatar', coverFile)
-        formDataUpload.append('playerName', 'team_cover')
+        formDataUpload.append('file', coverFile)
+        formDataUpload.append('folder', 'team')
+        formDataUpload.append('fileName', 'team_cover')
 
-        const uploadResponse = await fetch('/api/upload/avatar', {
+        const uploadResponse = await fetch('/api/upload/s3', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('fc-coder-token')}`
@@ -74,7 +75,7 @@ export default function AdminTeamPage() {
         const uploadData = await uploadResponse.json()
         console.log('Upload response:', uploadData)
         if (uploadData.success) {
-          coverPhotoUrl = uploadData.avatarUrl
+          coverPhotoUrl = uploadData.url
           console.log('New cover photo URL:', coverPhotoUrl)
         } else {
           console.error('Upload failed:', uploadData.error)

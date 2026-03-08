@@ -13,8 +13,7 @@ export default function PlayersPage() {
   const [filterPosition, setFilterPosition] = useState<string>('')
   const [filterDevRole, setFilterDevRole] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState<string>('teamRole')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [sortBy, setSortBy] = useState<string>('shirtNumber')
 
   const positions = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward']
   const devRoles = [
@@ -67,16 +66,34 @@ export default function PlayersPage() {
   })
 
   const sortedPlayers = [...filteredPlayers].sort((a, b) => {
-    let aValue: any = a[sortBy as keyof IPlayer]
-    let bValue: any = b[sortBy as keyof IPlayer]
-    
-    // Handle string comparisons
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      aValue = aValue.toLowerCase()
-      bValue = bValue.toLowerCase()
+    // Determine sort order based on sortBy selection
+    let aValue: any
+    let bValue: any
+    let order: 'asc' | 'desc' = 'asc'
+
+    switch (sortBy) {
+      case 'shirtNumber':
+        aValue = a.shirtNumber
+        bValue = b.shirtNumber
+        order = 'asc' // Shirt number: ascending (small to large)
+        break
+      case 'goals':
+        aValue = a.goals
+        bValue = b.goals
+        order = 'desc' // Goals: descending (large to small)
+        break
+      case 'assists':
+        aValue = a.assists
+        bValue = b.assists
+        order = 'desc' // Assists: descending (large to small)
+        break
+      default:
+        aValue = a.shirtNumber
+        bValue = b.shirtNumber
+        order = 'asc'
     }
-    
-    if (sortOrder === 'asc') {
+
+    if (order === 'asc') {
       return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
     } else {
       return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
@@ -181,7 +198,7 @@ export default function PlayersPage() {
             </div>
 
             {/* Sort By */}
-            <div className="min-w-[180px]">
+            <div className="min-w-[250px]">
               <label className="block text-sm font-mono text-cyber-gray mb-2">
                 <span className="text-neon-blue">sortBy:</span>
               </label>
@@ -190,29 +207,9 @@ export default function PlayersPage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
               >
-                <option value="teamRole">Team Role</option>
-                <option value="shirtNumber">Shirt Number</option>
-                <option value="name">Name</option>
-                <option value="matchesPlayed">Matches Played</option>
-                <option value="goals">Goals Scored</option>
-                <option value="assists">Assists</option>
-                <option value="position">Position</option>
-                <option value="devRole">Dev Role</option>
-              </select>
-            </div>
-
-            {/* Sort Order */}
-            <div className="min-w-[120px]">
-              <label className="block text-sm font-mono text-cyber-gray mb-2">
-                <span className="text-neon-blue">order:</span>
-              </label>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-                className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
-              >
-                <option value="asc">ASC ↑</option>
-                <option value="desc">DESC ↓</option>
+                <option value="shirtNumber">Shirt Number (Low to High)</option>
+                <option value="goals">Goals (High to Low)</option>
+                <option value="assists">Assists (High to Low)</option>
               </select>
             </div>
 

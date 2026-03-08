@@ -81,10 +81,11 @@ export default function AdminPlayersPage() {
       // Handle avatar upload if file is selected
       if (avatarFile) {
         const formDataUpload = new FormData()
-        formDataUpload.append('avatar', avatarFile)
-        formDataUpload.append('playerName', formData.name.replace(/\s+/g, '_'))
+        formDataUpload.append('file', avatarFile)
+        formDataUpload.append('folder', 'players')
+        formDataUpload.append('fileName', formData.name.replace(/\s+/g, '_'))
 
-        const uploadResponse = await fetch('/api/upload/avatar', {
+        const uploadResponse = await fetch('/api/upload/s3', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('fc-coder-token')}`
@@ -94,7 +95,7 @@ export default function AdminPlayersPage() {
 
         const uploadData = await uploadResponse.json()
         if (uploadData.success) {
-          avatarUrl = uploadData.avatarUrl
+          avatarUrl = uploadData.url
         }
       }
 

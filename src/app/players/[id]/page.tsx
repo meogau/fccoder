@@ -122,7 +122,7 @@ export default function PlayerDetailPage() {
                 <h1 className="text-xl font-mono text-neon-green">README.md</h1>
               </div>
               <div className="flex items-center space-x-2 text-xs font-mono text-cyber-gray">
-                <span>Joined: {new Date(player.joinedDate).toLocaleDateString()}</span>
+                <span>Joined: {new Date(player.joinDate).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function PlayerDetailPage() {
   },
   "devProfile": {
     "role": "${player.devRole}",
-    "joinedDate": "${new Date(player.joinedDate).toISOString().split('T')[0]}"
+    "joinedDate": "${new Date(player.joinDate).toISOString().split('T')[0]}"
   },
   "footballStats": {
     "matchesPlayed": ${player.matchesPlayed},
@@ -260,7 +260,7 @@ export default function PlayerDetailPage() {
                   </div>
                   <div className="mb-2">
                     <span className="text-neon-blue">Team Experience:</span> {
-                      Math.floor((new Date().getTime() - new Date(player.joinedDate).getTime()) / (1000 * 60 * 60 * 24))
+                      Math.floor((new Date().getTime() - new Date(player.joinDate).getTime()) / (1000 * 60 * 60 * 24))
                     } days
                   </div>
                 </div>
@@ -271,7 +271,7 @@ export default function PlayerDetailPage() {
             <div className="border-t border-neon-green/20 pt-6">
               <div className="flex flex-col sm:flex-row items-center justify-between text-sm font-mono text-cyber-gray">
                 <div>
-                  <span className="text-neon-green">Created:</span> {new Date(player.joinedDate).toLocaleDateString()}
+                  <span className="text-neon-green">Joined Team:</span> {new Date(player.joinDate).toLocaleDateString()}
                 </div>
                 <div>
                   <span className="text-neon-green">Player ID:</span> {String(player._id)}
