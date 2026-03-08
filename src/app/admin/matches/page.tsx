@@ -141,7 +141,7 @@ export default function AdminMatchesPage() {
       goalsAgainst: match.goalsAgainst,
       videoUrl: match.videoUrl || '',
       playerStats: match.playerStats.map(stat => ({
-        playerId: (stat.playerId.id || stat.playerId).toString(),
+        playerId: stat.playerId,
         goals: stat.goals,
         assists: stat.assists,
         isStarter: stat.isStarter

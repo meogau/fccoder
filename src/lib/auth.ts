@@ -28,7 +28,7 @@ export async function generateToken(user: AdminUser): Promise<string> {
 export async function verifyToken(token: string): Promise<AdminUser | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET)
-    return payload as AdminUser
+    return payload as unknown as AdminUser
   } catch (error) {
     console.error('Token verification error:', error)
     return null

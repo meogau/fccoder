@@ -108,16 +108,15 @@ export async function sendMatchResultNotifications(playerStats: Array<{
   assists: number
 }>): Promise<void> {
   try {
-    // Import Player model dynamically to avoid circular dependencies
-    const { default: Player } = await import('@/models/Player')
-    
+    const { getPlayerById } = await import('@/lib/db/playerModel')
+
     for (const stat of playerStats) {
       if (stat.goals > 0 || stat.assists > 0) {
-        const player = await Player.findById(stat.playerId)
-        
+        const player = await getPlayerById(stat.playerId)
+
         if (player) {
           const message = `🎉 Xin chúc mừng hôm nay bạn đã ghi <b>${stat.goals}</b> bàn và có <b>${stat.assists}</b> kiến tạo, hãy tiếp tục phát huy ở trận đấu tới nhé! ⚽️`
-          
+
           // Method 1: Try using direct telegramChatId (preferred)
           if (player.telegramChatId) {
             console.log(`Sending direct notification to ${player.name} via chat ID: ${player.telegramChatId}`)

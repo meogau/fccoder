@@ -78,14 +78,13 @@ export async function handlePlayerJoinedBot(chatId: string, startParam?: string)
 // Helper: Link player to chat ID in database
 async function linkPlayerToChatId(playerId: string, chatId: string): Promise<void> {
   try {
-    // Import Player model dynamically
-    const { default: Player } = await import('@/models/Player')
-    
+    const { updatePlayer } = await import('@/lib/db/playerModel')
+
     // Update player with chat ID
-    await Player.findByIdAndUpdate(playerId, {
+    await updatePlayer(playerId, {
       telegramChatId: chatId
     })
-    
+
     console.log(`Linked player ${playerId} to chat ID ${chatId}`)
   } catch (error) {
     console.error('Error linking player to chat ID:', error)
