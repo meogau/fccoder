@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import connectDB from '@/lib/mongodb'
-import Player from '@/models/Player'
 import { verifyToken } from '@/lib/auth'
+import { createPlayer, getAllPlayers, getPlayerByShirtNumber } from '@/lib/db/playerModel'
 
 async function authenticatedPOST(request: NextRequest) {
   try {
@@ -24,13 +23,21 @@ async function authenticatedPOST(request: NextRequest) {
       )
     }
 
-    await connectDB()
-    
     const body = await request.json()
-    
+
+    // Check if shirt number already exists
+    const existingPlayer = await getPlayerByShirtNumber(body.shirtNumber)
+    if (existingPlayer) {
+      return NextResponse.json(
+        { success: false, error: 'Shirt number already exists' },
+        { status: 400 }
+      )
+    }
+
     // Check if trying to create a captain when one already exists
     if (body.teamRole === 'captain') {
-      const existingCaptain = await Player.findOne({ teamRole: 'captain', isActive: true })
+      const allPlayers = await getAllPlayers({ isActive: true })
+      const existingCaptain = allPlayers.find(p => p.teamRole === 'captain')
       if (existingCaptain) {
         return NextResponse.json(
           { success: false, error: 'A captain already exists. Please choose vice-captain or member role.' },
@@ -38,32 +45,34 @@ async function authenticatedPOST(request: NextRequest) {
         )
       }
     }
-    
-    const player = new Player(body)
-    await player.save()
-    
+
+    // Create player with initial stats
+    const player = await createPlayer({
+      name: body.name,
+      shirtNumber: body.shirtNumber,
+      position: body.position,
+      birthYear: body.birthYear,
+      nationality: body.nationality || '',
+      bio: body.bio || '',
+      devRole: body.devRole,
+      teamRole: body.teamRole || 'member',
+      avatar: body.avatar || '',
+      joinDate: body.joinDate || new Date().toISOString(),
+      isActive: body.isActive ?? true,
+      phoneNumber: body.phoneNumber || '',
+      telegramChatId: body.telegramChatId || '',
+      goals: 0,
+      assists: 0,
+      matchesPlayed: 0
+    })
+
     return NextResponse.json(
       { success: true, data: player },
       { status: 201 }
     )
   } catch (error: any) {
     console.error('POST /api/players/protected error:', error)
-    
-    if (error.code === 11000) {
-      return NextResponse.json(
-        { success: false, error: 'Shirt number already exists' },
-        { status: 400 }
-      )
-    }
-    
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((err: any) => err.message)
-      return NextResponse.json(
-        { success: false, error: validationErrors.join(', ') },
-        { status: 400 }
-      )
-    }
-    
+
     return NextResponse.json(
       { success: false, error: 'Failed to create player' },
       { status: 500 }

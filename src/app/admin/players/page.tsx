@@ -100,7 +100,7 @@ export default function AdminPlayersPage() {
       }
 
       const isEditing = showEditForm && editingPlayer
-      const url = isEditing ? `/api/players/protected/${editingPlayer._id}` : '/api/players/protected'
+      const url = isEditing ? `/api/players/protected/${editingPlayer.id}` : '/api/players/protected'
       const method = isEditing ? 'PUT' : 'POST'
 
       const response = await fetch(url, {
@@ -508,7 +508,7 @@ export default function AdminPlayersPage() {
             ) : (
               <div className="space-y-4">
                 {players.map((player) => (
-                  <div key={String(player._id)} className="flex items-center justify-between p-4 bg-cyber-darker/30 rounded border border-neon-green/10 hover:border-neon-green/30 transition-all duration-300">
+                  <div key={String(player.id)} className="flex items-center justify-between p-4 bg-cyber-darker/30 rounded border border-neon-green/10 hover:border-neon-green/30 transition-all duration-300">
                     <div className="flex items-center space-x-4">
                       <div className="w-10 h-10 bg-neon-green/20 rounded-full flex items-center justify-center border border-neon-green/50 relative overflow-hidden">
                         {player.avatar ? (
@@ -576,7 +576,7 @@ export default function AdminPlayersPage() {
                           edit()
                         </button>
                         <button
-                          onClick={() => handleDelete(String(player._id))}
+                          onClick={() => handleDelete(String(player.id))}
                           className="px-3 py-1 bg-red-400/20 text-red-400 border border-red-400/30 rounded font-mono text-xs hover:bg-red-400/30 transition-all duration-300"
                         >
                           delete()

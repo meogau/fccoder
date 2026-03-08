@@ -45,7 +45,7 @@ export default function MatchCommit({ match }: MatchCommitProps) {
   }
 
   const generateCommitHash = () => {
-    return String(match._id).substring(0, 8)
+    return String(match.id).substring(0, 8)
   }
 
   const formatMatchScore = () => {
@@ -95,7 +95,7 @@ export default function MatchCommit({ match }: MatchCommitProps) {
   }
 
   return (
-    <Link href={`/matches/${match._id}`} className="block hover:bg-cyber-darker/30 transition-colors duration-200 rounded p-4">
+    <Link href={`/matches/${match.id}`} className="block hover:bg-cyber-darker/30 transition-colors duration-200 rounded p-4">
       <div className="flex items-start space-x-4">
         {/* Commit Icon and Line */}
         <div className="flex flex-col items-center">

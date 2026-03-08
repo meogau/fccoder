@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import connectDB from '@/lib/mongodb'
-import Player from '@/models/Player'
 import { verifyToken } from '@/lib/auth'
+import { updatePlayer, deletePlayer, getAllPlayers, getPlayerById, getPlayerByShirtNumber } from '@/lib/db/playerModel'
 
 async function authenticatedPUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -24,17 +23,23 @@ async function authenticatedPUT(request: NextRequest, { params }: { params: { id
       )
     }
 
-    await connectDB()
-    
     const body = await request.json()
-    
+
+    // Check if shirt number already exists (excluding current player)
+    if (body.shirtNumber) {
+      const existingPlayer = await getPlayerByShirtNumber(body.shirtNumber)
+      if (existingPlayer && existingPlayer.id !== params.id) {
+        return NextResponse.json(
+          { success: false, error: 'Shirt number already exists' },
+          { status: 400 }
+        )
+      }
+    }
+
     // Check if trying to update to captain when one already exists
     if (body.teamRole === 'captain') {
-      const existingCaptain = await Player.findOne({ 
-        teamRole: 'captain', 
-        isActive: true,
-        _id: { $ne: params.id } // Exclude current player
-      })
+      const allPlayers = await getAllPlayers({ isActive: true })
+      const existingCaptain = allPlayers.find(p => p.teamRole === 'captain' && p.id !== params.id)
       if (existingCaptain) {
         return NextResponse.json(
           { success: false, error: 'A captain already exists. Please choose vice-captain or member role.' },
@@ -42,42 +47,23 @@ async function authenticatedPUT(request: NextRequest, { params }: { params: { id
         )
       }
     }
-    
-    const player = await Player.findByIdAndUpdate(
-      params.id,
-      body,
-      { new: true, runValidators: true }
-    )
-    
+
+    const player = await updatePlayer(params.id, body)
+
     if (!player) {
       return NextResponse.json(
         { success: false, error: 'Player not found' },
         { status: 404 }
       )
     }
-    
+
     return NextResponse.json(
       { success: true, data: player },
       { status: 200 }
     )
   } catch (error: any) {
     console.error('PUT /api/players/protected/[id] error:', error)
-    
-    if (error.code === 11000) {
-      return NextResponse.json(
-        { success: false, error: 'Shirt number already exists' },
-        { status: 400 }
-      )
-    }
-    
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((err: any) => err.message)
-      return NextResponse.json(
-        { success: false, error: validationErrors.join(', ') },
-        { status: 400 }
-      )
-    }
-    
+
     return NextResponse.json(
       { success: false, error: 'Failed to update player' },
       { status: 500 }
@@ -106,24 +92,24 @@ async function authenticatedDELETE(request: NextRequest, { params }: { params: {
       )
     }
 
-    await connectDB()
-    
-    const player = await Player.findByIdAndDelete(params.id)
-    
+    // Check if player exists
+    const player = await getPlayerById(params.id)
     if (!player) {
       return NextResponse.json(
         { success: false, error: 'Player not found' },
         { status: 404 }
       )
     }
-    
+
+    await deletePlayer(params.id)
+
     return NextResponse.json(
       { success: true, message: 'Player deleted successfully' },
       { status: 200 }
     )
   } catch (error: any) {
     console.error('DELETE /api/players/protected/[id] error:', error)
-    
+
     return NextResponse.json(
       { success: false, error: 'Failed to delete player' },
       { status: 500 }

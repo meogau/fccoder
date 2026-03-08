@@ -8,7 +8,7 @@ import { IMatch } from '@/models/Match'
 import { IPlayer } from '@/models/Player'
 
 interface PlayerStat {
-  playerId: IPlayer
+  playerId: string
   goals: number
   assists: number
   isStarter: boolean
@@ -18,6 +18,7 @@ export default function MatchDetailsPage() {
   const params = useParams()
   const matchId = params.id as string
   const [match, setMatch] = useState<IMatch | null>(null)
+  const [players, setPlayers] = useState<IPlayer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,13 +31,23 @@ export default function MatchDetailsPage() {
   const fetchMatchDetails = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/matches/${matchId}`)
-      const data = await response.json()
-      
-      if (data.success) {
-        setMatch(data.data)
+      // Fetch match and players in parallel
+      const [matchResponse, playersResponse] = await Promise.all([
+        fetch(`/api/matches/${matchId}`),
+        fetch('/api/players')
+      ])
+
+      const matchData = await matchResponse.json()
+      const playersData = await playersResponse.json()
+
+      if (matchData.success) {
+        setMatch(matchData.data)
       } else {
         setError('Match not found')
+      }
+
+      if (playersData.success) {
+        setPlayers(playersData.data)
       }
     } catch (err) {
       setError('Failed to load match details')
@@ -44,6 +55,10 @@ export default function MatchDetailsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const getPlayerById = (playerId: string): IPlayer | undefined => {
+    return players.find(p => p.id === playerId)
   }
 
   const getMatchResult = () => {
@@ -74,20 +89,22 @@ export default function MatchDetailsPage() {
     if (!match) return []
     return match.playerStats
       .filter(stat => stat.goals > 0)
-      .map(stat => ({
-        player: stat.playerId as unknown as IPlayer,
-        goals: stat.goals
-      }))
+      .map(stat => {
+        const player = getPlayerById(stat.playerId as string)
+        return player ? { player, goals: stat.goals } : null
+      })
+      .filter(Boolean) as { player: IPlayer; goals: number }[]
   }
 
   const getAssists = () => {
     if (!match) return []
     return match.playerStats
       .filter(stat => stat.assists > 0)
-      .map(stat => ({
-        player: stat.playerId as unknown as IPlayer,
-        assists: stat.assists
-      }))
+      .map(stat => {
+        const player = getPlayerById(stat.playerId as string)
+        return player ? { player, assists: stat.assists } : null
+      })
+      .filter(Boolean) as { player: IPlayer; assists: number }[]
   }
 
   const getPlayersList = () => {
@@ -99,8 +116,9 @@ export default function MatchDetailsPage() {
         if (a.isStarter !== b.isStarter) {
           return b.isStarter ? 1 : -1
         }
-        const playerA = a.playerId as unknown as IPlayer
-        const playerB = b.playerId as unknown as IPlayer
+        const playerA = getPlayerById(a.playerId as string)
+        const playerB = getPlayerById(b.playerId as string)
+        if (!playerA || !playerB) return 0
         return playerA.shirtNumber - playerB.shirtNumber
       })
   }
@@ -329,11 +347,13 @@ export default function MatchDetailsPage() {
                 
                 <div className="space-y-3">
                   {getPlayersList().map((stat, index) => {
-                    const player = stat.playerId as unknown as IPlayer
+                    const player = getPlayerById(stat.playerId as string)
+                    if (!player) return null
+
                     const isFirstSub = index > 0 && stat.isStarter === false && getPlayersList()[index - 1].isStarter === true
-                    
+
                     return (
-                      <div key={String(stat.playerId._id)}>
+                      <div key={String(stat.playerId)}>
                         {isFirstSub && (
                           <div className="flex items-center my-4">
                             <div className="flex-1 h-px bg-neon-blue/30"></div>
@@ -347,7 +367,7 @@ export default function MatchDetailsPage() {
                             {player.shirtNumber}
                           </span>
                         </div>
-                        
+
                         <div className="flex-1 min-w-0">
                           <div className="font-mono font-bold text-cyber-light-gray text-sm">
                             {player.name}
@@ -359,7 +379,7 @@ export default function MatchDetailsPage() {
                             {player.position} • #{player.shirtNumber}
                           </div>
                         </div>
-                        
+
                         <div className="text-xs font-mono text-cyber-gray">
                           {stat.goals > 0 && <span className="text-neon-green mr-1">⚽{stat.goals}</span>}
                           {stat.assists > 0 && <span className="text-neon-blue">🎯{stat.assists}</span>}

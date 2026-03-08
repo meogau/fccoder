@@ -254,7 +254,7 @@ export default function AdminPage() {
               <span className="mx-4">|</span>
               <span className="text-neon-blue">Node:</span> Runtime Active
               <span className="mx-4">|</span>
-              <span className="text-neon-orange">DB:</span> MongoDB Connected
+              <span className="text-neon-orange">DB:</span> DynamoDB Connected
             </p>
           </div>
         </div>

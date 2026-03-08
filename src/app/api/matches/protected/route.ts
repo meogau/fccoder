@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import connectDB from '@/lib/mongodb'
-import Match from '@/models/Match'
-import Player from '@/models/Player'
+import { createMatch } from '@/lib/db/matchModel'
+import { getPlayerById, updatePlayer } from '@/lib/db/playerModel'
 import { verifyToken } from '@/lib/auth'
 import { sendMatchResultNotifications } from '@/lib/telegram'
 
@@ -26,16 +25,14 @@ async function authenticatedPOST(request: NextRequest) {
       )
     }
 
-    await connectDB()
-    
     const body = await request.json()
-    
+
     // Validate player stats if provided
     if (body.playerStats && body.playerStats.length > 0) {
       for (const stat of body.playerStats) {
         if (!stat.playerId) continue
-        
-        const player = await Player.findById(stat.playerId)
+
+        const player = await getPlayerById(stat.playerId)
         if (!player) {
           return NextResponse.json(
             { success: false, error: `Player with ID ${stat.playerId} not found` },
@@ -44,30 +41,25 @@ async function authenticatedPOST(request: NextRequest) {
         }
       }
     }
-    
-    const match = new Match(body)
-    await match.save()
-    
+
+    const match = await createMatch(body)
+
     // If match is completed, update player statistics
     if (body.status === 'completed' && body.playerStats && body.playerStats.length > 0) {
       for (const stat of body.playerStats) {
         if (!stat.playerId) continue
-        
-        await Player.findByIdAndUpdate(
-          stat.playerId,
-          { 
-            $inc: { 
-              goals: stat.goals || 0,
-              assists: stat.assists || 0,
-              matchesPlayed: 1
-            }
-          }
-        )
+
+        const player = await getPlayerById(stat.playerId)
+        if (player) {
+          await updatePlayer(stat.playerId, {
+            goals: player.goals + (stat.goals || 0),
+            assists: player.assists + (stat.assists || 0),
+            matchesPlayed: player.matchesPlayed + 1
+          })
+        }
       }
     }
-    
-    await match.populate('playerStats.playerId', 'name shirtNumber position devRole')
-    
+
     // Send Telegram notifications if match is completed
     if (body.status === 'completed' && body.playerStats?.length > 0) {
       // Send notifications asynchronously (don't wait for completion)
@@ -75,22 +67,14 @@ async function authenticatedPOST(request: NextRequest) {
         console.error('Failed to send notifications:', error)
       })
     }
-    
+
     return NextResponse.json(
       { success: true, data: match },
       { status: 201 }
     )
   } catch (error: any) {
     console.error('POST /api/matches/protected error:', error)
-    
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((err: any) => err.message)
-      return NextResponse.json(
-        { success: false, error: validationErrors.join(', ') },
-        { status: 400 }
-      )
-    }
-    
+
     return NextResponse.json(
       { success: false, error: 'Failed to create match' },
       { status: 500 }

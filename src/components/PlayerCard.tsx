@@ -41,7 +41,7 @@ export default function PlayerCard({ player }: PlayerCardProps) {
 
   return (
     <Link
-      href={`/players/${player._id}`}
+      href={`/players/${player.id}`}
       className="block"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

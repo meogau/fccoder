@@ -1,9 +1,9 @@
-import jwt from 'jsonwebtoken'
+import { SignJWT, jwtVerify } from 'jose'
 import bcrypt from 'bcryptjs'
 
-const JWT_SECRET = 'fc-coder-super-secret-jwt-key-2024'
+const JWT_SECRET = new TextEncoder().encode('fc-coder-super-secret-jwt-key-2024')
 const ADMIN_EMAIL = 'admin@fccoder.com'
-const ADMIN_PASSWORD_HASH = '$2b$10$iw2CavgKJQ626n4tQv3jG.ztUYyVsqS.jxzVsA3OL5JDNjF5ZVj8i'
+const ADMIN_PASSWORD_HASH = '$2b$10$RDAIxM8rymUfcbqTt5WU2urNRC4/TIplsS7vEJFs.CukI.mRkOpAy'
 
 export interface AdminUser {
   id: string
@@ -15,27 +15,27 @@ export function verifyPassword(password: string, hash: string): boolean {
   return bcrypt.compareSync(password, hash)
 }
 
-export function generateToken(user: AdminUser): string {
-  return jwt.sign(user, JWT_SECRET, { expiresIn: '24h' })
+export async function generateToken(user: AdminUser): Promise<string> {
+  const token = await new SignJWT({ ...user })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('24h')
+    .sign(JWT_SECRET)
+
+  return token
 }
 
-export function verifyToken(token: string): AdminUser | null {
+export async function verifyToken(token: string): Promise<AdminUser | null> {
   try {
-    return jwt.verify(token, JWT_SECRET) as AdminUser
+    const { payload } = await jwtVerify(token, JWT_SECRET)
+    return payload as AdminUser
   } catch (error) {
+    console.error('Token verification error:', error)
     return null
   }
 }
 
 export function authenticateAdmin(email: string, password: string): AdminUser | null {
-  console.log('=== AUTH DEBUG ===')
-  console.log('Input email:', email)
-  console.log('Expected email:', ADMIN_EMAIL)
-  console.log('Email match:', email === ADMIN_EMAIL)
-  console.log('Password hash being used:', ADMIN_PASSWORD_HASH)
-  console.log('Password verification result:', verifyPassword(password, ADMIN_PASSWORD_HASH))
-  console.log('==================')
-  
   if (email === ADMIN_EMAIL && verifyPassword(password, ADMIN_PASSWORD_HASH)) {
     return {
       id: 'admin',

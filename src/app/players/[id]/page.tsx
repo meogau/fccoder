@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
+import PlayerMatchHistory from '@/components/PlayerMatchHistory'
 import { IPlayer } from '@/models/Player'
 
 export default function PlayerDetailPage() {
@@ -274,11 +275,24 @@ export default function PlayerDetailPage() {
                   <span className="text-neon-green">Joined Team:</span> {new Date(player.joinDate).toLocaleDateString()}
                 </div>
                 <div>
-                  <span className="text-neon-green">Player ID:</span> {String(player._id)}
+                  <span className="text-neon-green">Player ID:</span> {String(player.id)}
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Match History Section */}
+        <div className="mb-8">
+          <Suspense fallback={
+            <div className="code-block rounded-lg p-8 text-center">
+              <div className="font-mono text-cyber-gray">
+                Loading match history<span className="animate-pulse">...</span>
+              </div>
+            </div>
+          }>
+            <PlayerMatchHistory playerId={String(player.id)} />
+          </Suspense>
         </div>
       </div>
     </div>

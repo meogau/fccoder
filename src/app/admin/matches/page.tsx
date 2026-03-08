@@ -79,7 +79,7 @@ export default function AdminMatchesPage() {
     
     try {
       const isEditing = showEditForm && editingMatch
-      const url = isEditing ? `/api/matches/protected/${editingMatch._id}` : '/api/matches/protected'
+      const url = isEditing ? `/api/matches/protected/${editingMatch.id}` : '/api/matches/protected'
       const method = isEditing ? 'PUT' : 'POST'
 
       const response = await fetch(url, {
@@ -141,7 +141,7 @@ export default function AdminMatchesPage() {
       goalsAgainst: match.goalsAgainst,
       videoUrl: match.videoUrl || '',
       playerStats: match.playerStats.map(stat => ({
-        playerId: (stat.playerId._id || stat.playerId).toString(),
+        playerId: (stat.playerId.id || stat.playerId).toString(),
         goals: stat.goals,
         assists: stat.assists,
         isStarter: stat.isStarter
@@ -438,7 +438,7 @@ export default function AdminMatchesPage() {
                           >
                             <option value="">Select player</option>
                             {players.map(player => (
-                              <option key={String(player._id)} value={String(player._id)}>
+                              <option key={String(player.id)} value={String(player.id)}>
                                 #{player.shirtNumber} {player.name}
                               </option>
                             ))}
@@ -528,7 +528,7 @@ export default function AdminMatchesPage() {
                 {matches.map((match) => {
                   const result = getMatchResult(match)
                   return (
-                    <div key={String(match._id)} className="flex items-center justify-between p-4 bg-cyber-darker/30 rounded border border-neon-green/10 hover:border-neon-green/30 transition-all duration-300">
+                    <div key={String(match.id)} className="flex items-center justify-between p-4 bg-cyber-darker/30 rounded border border-neon-green/10 hover:border-neon-green/30 transition-all duration-300">
                       <div className="flex items-center space-x-4">
                         <div className={`px-3 py-1 rounded text-xs font-mono border ${getResultColor(result)}`}>
                           {result}
@@ -569,7 +569,7 @@ export default function AdminMatchesPage() {
                             edit()
                           </button>
                           <button
-                            onClick={() => handleDelete(String(match._id))}
+                            onClick={() => handleDelete(String(match.id))}
                             className="px-3 py-1 bg-red-400/20 text-red-400 border border-red-400/30 rounded font-mono text-xs hover:bg-red-400/30 transition-all duration-300"
                           >
                             delete()

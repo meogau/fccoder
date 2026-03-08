@@ -1,8 +1,19 @@
-import mongoose, { Document, Schema } from 'mongoose'
+// Match TypeScript interface (for type checking only)
+// Data is now stored in DynamoDB, not MongoDB
 
-export interface IMatch extends Document {
+export interface PlayerStat {
+  playerId: string
+  goals: number
+  assists: number
+  yellowCards: number
+  redCards: number
+  isStarter: boolean
+}
+
+export interface IMatch {
+  id: string
   opponent: string
-  date: Date
+  date: Date | string
   venue: string
   isHome: boolean
   goalsFor: number
@@ -13,110 +24,5 @@ export interface IMatch extends Document {
   weatherConditions?: string
   matchReport?: string
   videoUrl?: string
-  playerStats: Array<{
-    playerId: mongoose.Types.ObjectId
-    goals: number
-    assists: number
-    yellowCards: number
-    redCards: number
-    isStarter: boolean
-  }>
+  playerStats: PlayerStat[]
 }
-
-const MatchSchema: Schema = new Schema({
-  opponent: { 
-    type: String, 
-    required: true,
-    trim: true
-  },
-  date: { 
-    type: Date, 
-    required: true 
-  },
-  venue: { 
-    type: String, 
-    required: true,
-    trim: true
-  },
-  isHome: { 
-    type: Boolean, 
-    required: true 
-  },
-  goalsFor: { 
-    type: Number, 
-    default: 0,
-    min: 0
-  },
-  goalsAgainst: { 
-    type: Number, 
-    default: 0,
-    min: 0
-  },
-  status: { 
-    type: String, 
-    enum: ['scheduled', 'live', 'completed', 'cancelled'],
-    default: 'scheduled'
-  },
-  competition: { 
-    type: String, 
-    required: true,
-    trim: true
-  },
-  attendance: { 
-    type: Number,
-    min: 0
-  },
-  weatherConditions: { 
-    type: String,
-    trim: true
-  },
-  matchReport: { 
-    type: String,
-    trim: true
-  },
-  videoUrl: { 
-    type: String,
-    trim: true
-  },
-  playerStats: [{
-    playerId: { 
-      type: Schema.Types.ObjectId, 
-      ref: 'Player', 
-      required: true 
-    },
-    goals: { 
-      type: Number, 
-      default: 0,
-      min: 0
-    },
-    assists: { 
-      type: Number, 
-      default: 0,
-      min: 0
-    },
-    yellowCards: { 
-      type: Number, 
-      default: 0,
-      min: 0
-    },
-    redCards: { 
-      type: Number, 
-      default: 0,
-      min: 0,
-      max: 1
-    },
-    isStarter: { 
-      type: Boolean, 
-      default: false 
-    }
-  }]
-}, {
-  timestamps: true
-})
-
-MatchSchema.index({ date: -1 })
-MatchSchema.index({ status: 1 })
-MatchSchema.index({ competition: 1 })
-MatchSchema.index({ opponent: 1 })
-
-export default mongoose.models.Match || mongoose.model<IMatch>('Match', MatchSchema)

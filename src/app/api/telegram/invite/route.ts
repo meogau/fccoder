@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
-import connectDB from '@/lib/mongodb'
-import Player from '@/models/Player'
+import { getPlayerById, getAllPlayers } from '@/lib/db/playerModel'
 
 // Generate invite link for a player
 export async function POST(request: NextRequest) {
@@ -34,10 +33,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    await connectDB()
-
-    // Get player info
-    const player = await Player.findById(playerId)
+    // Get player info from DynamoDB
+    const player = await getPlayerById(playerId)
     if (!player) {
       return NextResponse.json(
         { success: false, error: 'Player not found' },
@@ -47,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     // Create invite link
     const inviteLink = `https://t.me/YOUR_BOT_USERNAME?start=player_${playerId}`
-    
+
     // Create shareable message
     const inviteMessage = `
 🏆 Chào ${player.name}!
@@ -98,30 +95,36 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    await connectDB()
+    // Get all active players
+    const allPlayers = await getAllPlayers({ isActive: true })
 
-    // Get players without telegram chat ID
-    const playersWithoutTelegram = await Player.find({
-      isActive: true,
-      $or: [
-        { telegramChatId: { $exists: false } },
-        { telegramChatId: null },
-        { telegramChatId: '' }
-      ]
-    }).select('name shirtNumber position')
+    // Filter players without telegram
+    const playersWithoutTelegram = allPlayers.filter(
+      player => !player.telegramChatId || player.telegramChatId === ''
+    ).map(player => ({
+      id: player.id,
+      name: player.name,
+      shirtNumber: player.shirtNumber,
+      position: player.position
+    }))
 
-    // Get players with telegram
-    const playersWithTelegram = await Player.find({
-      isActive: true,
-      telegramChatId: { $exists: true, $nin: [null, ''] }
-    }).select('name shirtNumber position telegramChatId')
+    // Filter players with telegram
+    const playersWithTelegram = allPlayers.filter(
+      player => player.telegramChatId && player.telegramChatId !== ''
+    ).map(player => ({
+      id: player.id,
+      name: player.name,
+      shirtNumber: player.shirtNumber,
+      position: player.position,
+      telegramChatId: player.telegramChatId
+    }))
 
     return NextResponse.json({
       success: true,
       playersWithoutTelegram,
       playersWithTelegram,
       summary: {
-        total: playersWithoutTelegram.length + playersWithTelegram.length,
+        total: allPlayers.length,
         withTelegram: playersWithTelegram.length,
         needInvite: playersWithoutTelegram.length
       }

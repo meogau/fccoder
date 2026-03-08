@@ -1,129 +1,55 @@
-'use client'
-
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import Navbar from '@/components/Navbar'
-import TerminalCommand from '@/components/TerminalCommand'
 import GlitchText from '@/components/GlitchText'
-import { ITeam } from '@/models/Team'
+import TerminalAnimation from '@/components/TerminalAnimation'
+import { getAllPlayers } from '@/lib/db/playerModel'
+import { getTeamInfo } from '@/lib/db/teamModel'
+import { getAllMatches, getUpcomingMatches } from '@/lib/db/matchModel'
 
-interface Match {
-  _id: string
-  opponent: string
-  date: string
-  venue: string
-  isHome: boolean
-  status: string
-  goalsFor?: number
-  goalsAgainst?: number
-}
+// Enable ISR - revalidate every 60 seconds
+export const revalidate = 60
 
-export default function HomePage() {
-  const [currentStep, setCurrentStep] = useState(0)
-  const [nextMatch, setNextMatch] = useState<Match | null>(null)
-  const [teamInfo, setTeamInfo] = useState<ITeam | null>(null)
-  const [teamStats, setTeamStats] = useState({
-    totalPlayers: 0,
-    activePlayers: 0,
-    totalMatches: 0,
-    totalGoals: 0,
-    wins: 0,
-    draws: 0,
-    losses: 0,
-    winRate: 0
+export default async function HomePage() {
+  // Fetch data directly from DynamoDB (Server-side)
+  const [players, teamInfo, allMatchesResult, upcomingMatches] = await Promise.all([
+    getAllPlayers({ isActive: true }),
+    getTeamInfo(),
+    getAllMatches(),
+    getUpcomingMatches(1)
+  ])
+
+  const allMatches = allMatchesResult.data
+
+  // Calculate team statistics
+  const completedMatches = allMatches.filter(match => match.status === 'completed')
+  const totalGoals = completedMatches.reduce((sum, match) => sum + match.goalsFor, 0)
+
+  let wins = 0, draws = 0, losses = 0
+  completedMatches.forEach(match => {
+    if (match.goalsFor > match.goalsAgainst) wins++
+    else if (match.goalsFor === match.goalsAgainst) draws++
+    else losses++
   })
-  const [isLoading, setIsLoading] = useState(true)
 
-  const terminalSteps = [
-    {
-      command: 'cd /var/www/fc-coder',
-      response: ''
-    },
-    {
-      command: 'npm run welcome',
-      response: '> fc-coder@1.0.0 welcome\n> node scripts/welcome.js\n\n🟢 Initializing FC Coder Terminal...\n✅ Loading squad data...\n✅ Connecting to match database...\n🎯 System ready!'
-    },
-    {
-      command: './getTeamInfo.sh',
-      response: '{\n  "name": "FC Coder",\n  "founded": "2024",\n  "philosophy": "Code by day, score by night",\n  "members": "11+ developers",\n  "status": "ready_to_deploy"\n}'
-    }
-  ]
+  const winRate = completedMatches.length > 0 ? Math.round((wins / completedMatches.length) * 100) : 0
+  const nextMatch = upcomingMatches[0] || null
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [matchResponse, teamResponse, playersResponse, allMatchesResponse] = await Promise.all([
-          fetch('/api/matches?status=scheduled&limit=1', { cache: 'no-store' }),
-          fetch('/api/team', { cache: 'no-store' }),
-          fetch('/api/players', { cache: 'no-store' }),
-          fetch('/api/matches?limit=1000', { cache: 'no-store' }) // Get all matches for statistics
-        ])
-        
-        const matchData = await matchResponse.json()
-        if (matchData.success && matchData.data.length > 0) {
-          setNextMatch(matchData.data[0])
-        }
-
-        const teamData = await teamResponse.json()
-        console.log('Homepage team data:', teamData)
-        if (teamData.success) {
-          console.log('Team cover photo:', teamData.data?.coverPhoto)
-          setTeamInfo(teamData.data)
-        }
-
-        const playersData = await playersResponse.json()
-        const allMatchesData = await allMatchesResponse.json()
-
-        if (playersData.success && allMatchesData.success) {
-          const players = playersData.data
-          const matches = allMatchesData.data
-          
-          // Calculate team statistics
-          const completedMatches = matches.filter((match: any) => match.status === 'completed')
-          const totalGoals = completedMatches.reduce((sum: number, match: any) => sum + (match.goalsFor || 0), 0)
-          
-          let wins = 0, draws = 0, losses = 0
-          completedMatches.forEach((match: any) => {
-            if (match.goalsFor > match.goalsAgainst) wins++
-            else if (match.goalsFor === match.goalsAgainst) draws++
-            else losses++
-          })
-          
-          const winRate = completedMatches.length > 0 ? Math.round((wins / completedMatches.length) * 100) : 0
-          
-          setTeamStats({
-            totalPlayers: players.length,
-            activePlayers: players.filter((p: any) => p.isActive).length,
-            totalMatches: completedMatches.length,
-            totalGoals,
-            wins,
-            draws,
-            losses,
-            winRate
-          })
-        }
-      } catch (error) {
-        console.error('Failed to fetch data:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [])
-
-  const handleStepComplete = () => {
-    if (currentStep < terminalSteps.length - 1) {
-      setTimeout(() => {
-        setCurrentStep(currentStep + 1)
-      }, 500)
-    }
+  const teamStats = {
+    totalPlayers: players.length,
+    activePlayers: players.filter(p => p.isActive).length,
+    totalMatches: completedMatches.length,
+    totalGoals,
+    wins,
+    draws,
+    losses,
+    winRate
   }
 
   return (
     <div className="min-h-screen bg-cyber-dark text-cyber-light-gray">
       <Navbar />
-      
+
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Background Grid */}
@@ -140,7 +66,7 @@ export default function HomePage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center mb-16">
             <div className="mb-8">
-              <GlitchText 
+              <GlitchText
                 text="FC CODER"
                 className="text-6xl md:text-8xl font-bold text-neon-green mb-4 animate-neon-pulse"
                 glitchIntensity="medium"
@@ -151,31 +77,8 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Terminal Simulation */}
-            <div className="max-w-4xl mx-auto code-block rounded-lg p-6 mb-12">
-              <div className="flex items-center mb-4 pb-2 border-b border-neon-green/20">
-                <div className="flex space-x-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                </div>
-                <span className="ml-4 text-sm text-cyber-gray font-mono">
-                  terminal — fc-coder@localhost
-                </span>
-              </div>
-              
-              <div className="text-left space-y-4">
-                {terminalSteps.slice(0, currentStep + 1).map((step, index) => (
-                  <TerminalCommand
-                    key={index}
-                    command={step.command}
-                    response={step.response}
-                    onComplete={index === currentStep ? handleStepComplete : undefined}
-                    showCursor={index === currentStep}
-                  />
-                ))}
-              </div>
-            </div>
+            {/* Terminal Simulation (Client Component for animation) */}
+            <TerminalAnimation />
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
@@ -211,27 +114,23 @@ export default function HomePage() {
                 <span className="text-neon-green font-mono">$</span>
                 <span className="ml-2 font-mono text-cyber-light-gray">./getNextMatch.sh</span>
               </div>
-              
-              {isLoading ? (
-                <div className="font-mono text-cyber-gray">
-                  Loading match data<span className="animate-pulse">...</span>
-                </div>
-              ) : nextMatch ? (
+
+              {nextMatch ? (
                 <div className="font-mono text-sm space-y-2">
                   <div className="text-cyber-light-gray">
-                    <span className="text-neon-blue">opponent:</span> "{nextMatch.opponent}"
+                    <span className="text-neon-blue">opponent:</span> &quot;{nextMatch.opponent}&quot;
                   </div>
                   <div className="text-cyber-light-gray">
-                    <span className="text-neon-blue">date:</span> "{new Date(nextMatch.date).toISOString()}"
+                    <span className="text-neon-blue">date:</span> &quot;{new Date(nextMatch.date).toISOString()}&quot;
                   </div>
                   <div className="text-cyber-light-gray">
-                    <span className="text-neon-blue">stadium:</span> "{nextMatch.isHome ? '/dev/stadium/home' : '/dev/stadium/away'}"
+                    <span className="text-neon-blue">stadium:</span> &quot;{nextMatch.isHome ? '/dev/stadium/home' : '/dev/stadium/away'}&quot;
                   </div>
                   <div className="text-cyber-light-gray">
-                    <span className="text-neon-blue">venue:</span> "{nextMatch.venue}"
+                    <span className="text-neon-blue">venue:</span> &quot;{nextMatch.venue}&quot;
                   </div>
                   <div className="text-cyber-light-gray">
-                    <span className="text-neon-blue">status:</span> "{nextMatch.status}"
+                    <span className="text-neon-blue">status:</span> &quot;{nextMatch.status}&quot;
                   </div>
                 </div>
               ) : (
@@ -260,10 +159,13 @@ export default function HomePage() {
                 <div className="code-block rounded-lg overflow-hidden">
                   {teamInfo.coverPhoto ? (
                     <div className="relative">
-                      <img 
-                        src={teamInfo.coverPhoto} 
+                      <Image
+                        src={teamInfo.coverPhoto}
                         alt="FC Coder Team"
+                        width={800}
+                        height={600}
                         className="w-full h-80 object-cover"
+                        priority
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-cyber-dark/80 via-transparent to-transparent"></div>
                       <div className="absolute bottom-4 left-4">
@@ -298,7 +200,7 @@ export default function HomePage() {
                   <h3 className="text-xl font-mono text-neon-green mb-6">
                     <span className="text-cyber-gray">// </span>OUR_STORY
                   </h3>
-                  
+
                   <div className="font-mono text-cyber-light-gray text-base leading-relaxed mb-6">
                     {teamInfo.biography.split('\n').map((paragraph, index) => (
                       <p key={index} className="mb-4 last:mb-0">
@@ -306,7 +208,6 @@ export default function HomePage() {
                       </p>
                     ))}
                   </div>
-
                 </div>
               </div>
             </div>
@@ -327,35 +228,35 @@ export default function HomePage() {
             <div className="code-block rounded-lg p-6 text-center scanline">
               <div className="font-mono text-neon-blue text-lg mb-2">const SQUAD_SIZE</div>
               <div className="text-4xl font-bold text-neon-green mb-2">
-                {isLoading ? '...' : teamStats.activePlayers}
+                {teamStats.activePlayers}
               </div>
               <div className="text-cyber-gray text-sm">
-                Active Players ({isLoading ? '...' : teamStats.totalPlayers} total)
+                Active Players ({teamStats.totalPlayers} total)
               </div>
             </div>
-            
+
             <div className="code-block rounded-lg p-6 text-center scanline">
               <div className="font-mono text-neon-blue text-lg mb-2">let GOALS_SCORED</div>
               <div className="text-4xl font-bold text-neon-green mb-2">
-                {isLoading ? '...' : teamStats.totalGoals}
+                {teamStats.totalGoals}
               </div>
               <div className="text-cyber-gray text-sm">Total Goals Scored</div>
             </div>
-            
+
             <div className="code-block rounded-lg p-6 text-center scanline">
               <div className="font-mono text-neon-blue text-lg mb-2">var MATCHES_PLAYED</div>
               <div className="text-4xl font-bold text-neon-green mb-2">
-                {isLoading ? '...' : teamStats.totalMatches}
+                {teamStats.totalMatches}
               </div>
               <div className="text-cyber-gray text-sm">
-                W:{isLoading ? '...' : teamStats.wins} D:{isLoading ? '...' : teamStats.draws} L:{isLoading ? '...' : teamStats.losses}
+                W:{teamStats.wins} D:{teamStats.draws} L:{teamStats.losses}
               </div>
             </div>
-            
+
             <div className="code-block rounded-lg p-6 text-center scanline">
               <div className="font-mono text-neon-blue text-lg mb-2">function WIN_RATE()</div>
               <div className="text-4xl font-bold text-neon-green mb-2">
-                {isLoading ? '...' : `${teamStats.winRate}%`}
+                {teamStats.winRate}%
               </div>
               <div className="text-cyber-gray text-sm">Success Rate</div>
             </div>
@@ -367,7 +268,7 @@ export default function HomePage() {
       <footer className="bg-cyber-darker py-8 border-t border-neon-green/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="font-mono text-cyber-gray">
-            <span className="text-neon-green">©</span> 2024 FC Coder. 
+            <span className="text-neon-green">©</span> 2024 FC Coder.
             <span className="text-neon-blue"> // </span>
             Compiled with ❤️ and ⚽
           </p>

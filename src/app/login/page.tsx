@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
 import Navbar from '@/components/Navbar'
 import TerminalCommand from '@/components/TerminalCommand'
 import GlitchText from '@/components/GlitchText'
@@ -13,7 +12,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const { login, user } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -22,26 +20,35 @@ export default function LoginPage() {
     return () => clearTimeout(timer)
   }, [])
 
-  useEffect(() => {
-    if (user) {
-      router.push('/admin')
-    }
-  }, [user, router])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const success = await login(email, password)
-    
-    if (success) {
-      router.push('/admin')
-    } else {
-      setError('Invalid credentials. Please try again.')
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        localStorage.setItem('fc-coder-token', data.token)
+        // Use window.location.href to ensure a full page reload with the new token
+        window.location.href = '/admin'
+      } else {
+        setError('Invalid credentials. Please try again.')
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      setError('An error occurred. Please try again.')
+      setLoading(false)
     }
-    
-    setLoading(false)
   }
 
   const handleTerminalComplete = () => {

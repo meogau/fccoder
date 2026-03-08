@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { AdminUser, verifyToken } from '@/lib/auth'
+import { AdminUser } from '@/lib/auth'
 
 interface AuthContextType {
   user: AdminUser | null
@@ -30,17 +30,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem('fc-coder-token')
-    if (token) {
-      const decoded = verifyToken(token)
-      if (decoded) {
-        setUser(decoded)
-      } else {
-        localStorage.removeItem('fc-coder-token')
+    // Check if user is already logged in by verifying token with server
+    const checkAuth = async () => {
+      console.log('[AuthContext] Checking for existing token...')
+      const token = localStorage.getItem('fc-coder-token')
+      console.log('[AuthContext] Token found:', !!token)
+
+      if (token) {
+        console.log('[AuthContext] Verifying token with server...')
+        try {
+          const response = await fetch('/api/auth/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          })
+
+          const data = await response.json()
+          console.log('[AuthContext] Server verification result:', data)
+
+          if (data.success && data.user) {
+            setUser(data.user)
+            console.log('[AuthContext] User set:', data.user)
+          } else {
+            console.log('[AuthContext] Invalid token, removing...')
+            localStorage.removeItem('fc-coder-token')
+          }
+        } catch (error) {
+          console.error('[AuthContext] Token verification error:', error)
+          localStorage.removeItem('fc-coder-token')
+        }
       }
+
+      setLoading(false)
+      console.log('[AuthContext] Loading complete')
     }
-    setLoading(false)
+
+    checkAuth()
   }, [])
 
   const login = async (email: string, password: string): Promise<boolean> => {
