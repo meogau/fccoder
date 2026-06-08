@@ -20,7 +20,6 @@ export default function AdminMatchesPage() {
     date: '',
     venue: '',
     isHome: true,
-    competition: '',
     status: 'scheduled' as 'scheduled' | 'live' | 'completed' | 'cancelled',
     goalsFor: 0,
     goalsAgainst: 0,
@@ -113,7 +112,6 @@ export default function AdminMatchesPage() {
       date: '',
       venue: '',
       isHome: true,
-      competition: '',
       status: 'scheduled',
       goalsFor: 0,
       goalsAgainst: 0,
@@ -135,7 +133,6 @@ export default function AdminMatchesPage() {
       date: localDateTime,
       venue: match.venue,
       isHome: match.isHome,
-      competition: match.competition,
       status: match.status,
       goalsFor: match.goalsFor,
       goalsAgainst: match.goalsAgainst,
@@ -304,20 +301,6 @@ export default function AdminMatchesPage() {
                     required
                     className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
                     placeholder="Stadium name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-mono text-cyber-gray mb-2">
-                    <span className="text-neon-blue">competition:</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.competition}
-                    onChange={(e) => setFormData(prev => ({ ...prev, competition: e.target.value }))}
-                    required
-                    className="w-full px-4 py-2 bg-cyber-darker border border-neon-green/30 rounded font-mono text-cyber-light-gray focus:border-neon-green focus:outline-none"
-                    placeholder="League or tournament name"
                   />
                 </div>
 
@@ -542,8 +525,6 @@ export default function AdminMatchesPage() {
                             <span>{new Date(match.date).toLocaleDateString()}</span>
                             <span>•</span>
                             <span>{match.venue}</span>
-                            <span>•</span>
-                            <span>{match.competition}</span>
                             <span>•</span>
                             <span>{match.isHome ? '🏠 Home' : '✈️ Away'}</span>
                           </div>

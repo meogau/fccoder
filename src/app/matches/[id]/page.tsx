@@ -228,7 +228,6 @@ export default function MatchDetailsPage() {
                   <div><span className="text-neon-blue">venue:</span> {match.venue}</div>
                 </div>
                 <div className="space-y-2">
-                  <div><span className="text-neon-blue">competition:</span> {match.competition}</div>
                   <div><span className="text-neon-blue">location:</span> {match.isHome ? '🏠 Home' : '✈️ Away'}</div>
                   <div><span className="text-neon-blue">status:</span> {match.status}</div>
                 </div>

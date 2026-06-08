@@ -26,7 +26,6 @@ export interface Match {
   goalsFor: number
   goalsAgainst: number
   status: 'scheduled' | 'live' | 'completed' | 'cancelled'
-  competition: string
   attendance?: number
   weatherConditions?: string
   matchReport?: string

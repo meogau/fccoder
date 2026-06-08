@@ -64,19 +64,19 @@ export default function MatchCommit({ match }: MatchCommitProps) {
     
     switch (result) {
       case 'WIN':
-        return `Deployed a ${score} victory in ${match.competition}`
+        return `Deployed a ${score} victory`
       case 'LOSS':
-        return `Refactoring needed after a ${score} result in ${match.competition}`
+        return `Refactoring needed after a ${score} result`
       case 'DRAW':
-        return `Merged a ${score} draw in ${match.competition}`
+        return `Merged a ${score} draw`
       case 'LIVE':
         return `Currently debugging live match vs ${match.opponent}`
       case 'SCHEDULED':
-        return `Scheduled deployment: ${score} in ${match.competition}`
+        return `Scheduled deployment: ${score}`
       case 'CANCELLED':
-        return `Rollback: ${score} in ${match.competition}`
+        return `Rollback: ${score}`
       default:
-        return `Match vs ${match.opponent} in ${match.competition}`
+        return `Match vs ${match.opponent}`
     }
   }
 

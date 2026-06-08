@@ -21,7 +21,6 @@ interface Match {
   goalsFor: number
   goalsAgainst: number
   status: 'scheduled' | 'live' | 'completed' | 'cancelled'
-  competition: string
   playerStats: PlayerStat[]
 }
 
@@ -149,10 +148,6 @@ export default function PlayerMatchHistory({ playerId }: PlayerMatchHistoryProps
                         <span>•</span>
                         <span>
                           <span className="text-neon-blue">venue:</span> {match.isHome ? '🏠' : '✈️'} {match.venue}
-                        </span>
-                        <span>•</span>
-                        <span>
-                          <span className="text-neon-blue">competition:</span> {match.competition}
                         </span>
                       </div>
                     </div>
